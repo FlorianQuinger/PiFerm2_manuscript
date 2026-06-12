@@ -57,10 +57,10 @@ The content is separated in two directories. The directory "metagenomics" contai
 
 ### statistics
 The names of the diets may be different compared to the manuscript:
-diet1 = spring field pea = SP
-diet2 = winter field pea 1 = WP1
-diet3 = winter field pea 2 = WP2
-diet4 = spring forage pea = SFP
+- diet1 = spring field pea = SP
+- diet2 = winter field pea 1 = WP1
+- diet3 = winter field pea 2 = WP2
+- diet4 = spring forage pea = SFP
 
 #### General files
 - **00_experimental_design.R** - Randomization of the double Latin square design
