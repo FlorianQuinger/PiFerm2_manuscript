@@ -31,31 +31,6 @@ mkdir -p $DBmerge
 mkdir -p $DBdrep
 mkdir -p $DBown
 
-# copy all bins for merged DB
-
-mkdir -p $DBmerge/original_db # for faa files
-cp $PGprokka/*.faa $DBmerge/original_db
-echo "copied all files from $PGprokka"
-cp $BP/*.faa $DBmerge/original_db
-echo "copied all files from $BP"
-
-mkdir -p $DBmerge/eggNOG # for eggnog files
-for i in $PGegg/*.annotations; do 
-	MAG=$(basename $i)
-	MAG=${MAG/.emapper.annotations/}
-	cp $i $DBmerge/eggNOG/${MAG}_eggNOG.tsv
-	echo "copied $i"
-done
-
-for i in $BEN/*.annotations; do # rename each file while copying
-	MAG=$(basename $i)
-	MAG=${MAG/.emapper.annotations/}
-	cp $i $DBmerge/eggNOG/${MAG}_eggNOG.tsv
-	echo "copied $i"
-done
-
-echo "finished creation of merged database"
-
 # copy only dereplicated bins for drep DB
 
 mkdir -p $DBdrep/original_db # for faa files
@@ -78,20 +53,3 @@ for i in $DREP/MGYGPF*; do # copy own bins
 done	
 
 echo "finished creation of dereplicated database"
-
-# copy all bins for own database
-
-mkdir -p $DBown/original_db # for faa files
-mkdir -p $DBown/eggNOG # for eggnog files
-
-cp $BP/*.faa $DBown/original_db
-echo "copied all files from $BP"
-
-for i in $BEN/*.annotations; do # rename each file while copying
-	MAG=$(basename $i)
-	MAG=${MAG/.emapper.annotations/}
-	cp $i $DBown/eggNOG/${MAG}_eggNOG.tsv
-	echo "copied $i"
-done
-
-echo "finished creation of own database"
