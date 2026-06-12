@@ -53,4 +53,55 @@ The content is separated in two directories. The directory "metagenomics" contai
 - **065_pig_gut_prokka.sh** - Gene prediction on published MGnify pig-gut 1.0 bins
 - **066_pig_gut_gtdbtk.sh** - Taxonomic classification of MGnify pig-gut 1.0 bins
 - **067_pig_gut_eggnog.sh** - Functional annotation of MGnify pig-gut 1.0 bins
-- **064_db_creation.sh** - Copies predicted proteins and functional annotation files to create different databases
+- **064_db_creation.sh** - Copies predicted proteins and functional annotation files to create database
+
+### statistics
+The names of the diets may be different compared to the manuscript:
+diet1 = spring field pea = SP
+diet2 = winter field pea 1 = WP1
+diet3 = winter field pea 2 = WP2
+diet4 = spring forage pea = SFP
+
+#### General files
+- **00_experimental_design.R** - Randomization of the double Latin square design
+- **0_general_functions.R** - Functions that may be reused across the whole analysis
+- **30_omics_functions.R** - Functions used in script for metagenomics and metaproteomics
+ 
+#### Data cleaning
+- **00_experimental_design.R** - Randomization of the double Latin square design
+- **01_data_cleaning.R** - Reads in metabolomics as tsv files, cleans column names, calculates concentration in DM, and save data as RDS file
+- **02_data_cleaning_metaproteomics.R** - Reading in metaproteomics output files from MetaLab MAG, cleaning, normalization, imputation, and generation of different output files for taxonomic and functional analysis
+- **03_database_creation_metagenomes.R** - Helper script to create taxonomy file compatible with MetaLab MAG for dereplicated MAG database
+- **04_data_cleaning_metagenomics.R** - Reading in output files from metagenomics pipeline, cleaning, and generation of different output files
+
+#### Enzyme activity
+- **10_enzyme_functions.R** - Functions used in scripts for enzyme analysis
+- **16_enzyme_dry_matter.R** - Calculating enzyme activity per DM
+- **17_enzyme_analysis.R** - Statistical analysis of enzyme activities
+
+#### Nutrient digestibility
+- **20_nutrition_functions.R** - Functions usd in scripts for analysis of nutrient digestibility
+- **21_nutrition_analysis.R** - Statistical analysis of data retrieved from nutrient analyses
+
+#### Metagenomics
+- **32_metagenomics_reads_taxonomy.R** - Visualization and statistical analysis of taxonomy based on reads
+- **33_metagenomics_contigs_tax_func.R** - Visualization and statistical analysis of functional data based on contigs
+
+#### Metaproteomics
+- **44_metaproteomics_basic.R** - Visualization of metrics and micro-host ratio for metaproteomics
+- **45_metaproteomics_ordination.R** - Beta diversity of metaproteomics data
+- **46_metaproteomics_dea.R** - Differential abundance analysis of functions and proteins using edgeR
+- **47_metaproteomics_daa.R** - Alpha diversity and differential abundance analysis of taxa using ANCOM-BC2
+- **49_metaproteomics_nfr.R** - Calculation and statistical analysis of functional redundancy
+
+#### Metabolomics
+- **52_metabolomics_reml.R** - Statistical analysis of metabolite concentrations
+
+#### Multiomics
+- **70_multiomics_functions.R** - Functions that are used for multiomics analysis
+- **70_multiomics_data_prep.R** - Preprocessing of the input data for DIABLO
+- **73_multiomics_diablo_ileum.R** - DIABLO models for ileal digesta
+- **74_multiomics_diablo_faeces.R** - DIABLO models for feces
+
+#### Other
+- **92_figures_JAS.R** - Creation of figures for publication
