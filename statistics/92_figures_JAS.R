@@ -1485,13 +1485,9 @@ legend <- tibble(block = c("Nutrition", "Metagenomics", "Metaproteomics", "Host"
 legend <- get_legend(legend)
 ggdraw(legend)
 
-empty <- ggplot() +
-  theme_void()
-
 figS9 <- (((figS9a | figS9bc) + plot_layout(widths = c(4,6))) / 
-            (legend) / 
-            empty) +
-  plot_layout(heights = c(4,1,.1)) +
+            (legend)) +
+  plot_layout(heights = c(4,1)) +
   plot_annotation(tag_levels = list(c("a", "b", "c","", "d", "e", "f", ""))) &
   theme(plot.tag = element_text(size = 22, face = "bold"))
 
@@ -1686,13 +1682,9 @@ legend <- tibble(block = c("Nutrition", "Metagenomics", "Metaproteomics", "Host"
 legend <- get_legend(legend)
 ggdraw(legend)
 
-empty <- ggplot() +
-  theme_void()
-
 figS14 <- (((figS14a | figS14bc) + plot_layout(widths = c(4,6))) / 
-             (legend) / 
-             empty) +
-  plot_layout(heights = c(4,1,.1)) +
+             (legend)) +
+  plot_layout(heights = c(4,1)) +
   plot_annotation(tag_levels = list(c("a", "b", "c","", "d", "e", "f", ""))) &
   theme(plot.tag = element_text(size = 22, face = "bold"))
 
@@ -1709,60 +1701,38 @@ ggsave(filename= "92_figS14.jpeg",
 # networks
 library(qgraph)
 
-# S9d
-
-matrix_il_combined_1_2 <- plot_diablo(diablo_il_combined_1_2, cutoff_value = 0.875)
-
-g <- graph_from_adjacency_matrix(matrix_il_combined_1_2, mode = "undirected", weighted = T, diag = F)
-layout_fr <- layout_with_fr(g, weights = 1-(abs(E(g)$weight)))
-layout_fr <- qgraph.layout.fruchtermanreingold(get.edgelist(g, names = F), #weights = 1-(abs(E(g)$weight)), 
-                                               vcount = vcount(g), area = vcount(g)^3, repulse.rad=vcount(g)^3.4)
-layout_fr <- norm_coords(layout_fr)
-# assign colors to weight values
-color_index <- round((E(g)$weight + 1) / 2 * 99) + 1
-E(g)$color <- color.jet(100)[color_index]
-E(g)$width <- .75
-node_color <- c("#a6cee3", "#b2df8a", "#fb9a99", "#fdbf6f", "#cab2d6", "#ffff99")
-color_vector <- case_when(str_detect(V(g)$name, "^il|^fa|^pc|^hg|^enz") ~ 1,
-                          str_detect(V(g)$name, "^g_") ~ 2,
-                          str_detect(V(g)$name, "^p_") ~ 3,
-                          str_detect(V(g)$name, "^ssc_") ~ 4,
-                          str_detect(V(g)$name, "_PEA$") ~ 5,
-                          str_detect(V(g)$name, "^m_") ~ 6,
-                          .default = 0)
-V(g)$color <- node_color[color_vector]
-V(g)$label.family <- "arial"
-V(g)$label.font <- 1
-V(g)$label.color <- "black"
-V(g)$label.cex <- .75
-jpeg(filename = paste0("plots/", get_script_number(), "_figS9d", save_name, ".jpeg"),
-     width = 20, height = 15, unit="cm", res = 500, pointsize = 12, family = "arial")
-par(mar = c(0,0,0,0))
-plot(g, layout = layout_fr, margin = c(0,0,0,0), rescale = F,
-     vertex.shape = "rectangle", 
-     vertex.size = str_width(V(g)$name)*1.8,
-     vertex.size2 = 3,
-     vertex.frame.width = .1)
-legend("topright",
-       legend = c(NA,1,NA,NA,NA,NA, 0, NA,NA,NA,NA,-1),
-       fill = c("white", rev(color.jet(11))),
-       border = NA,
-       y.intersp = .5,
-       cex = 1, text.font = 1,
-       title = "Correlation", title.adj = 0.2, title.cex = 1.25)
-legend("bottomright",
-       legend = c("Nutrition", "Metagenomics", "Metaproteomics", "Host proteins", "Pea proteins", "Metabolomics"),
-       fill = node_color,
-       y.intersp = .8,
-       cex = 1,
-       title = "Block", title.adj = 0.2, title.cex = 1.25)
-dev.off() 
 
 # S10d
 
 matrix_il_combined_1_3 <- plot_diablo(diablo_il_combined_1_3, cutoff_value = 0.85)
 
 g <- graph_from_adjacency_matrix(matrix_il_combined_1_3, mode = "undirected", weighted = T, diag = F)
+cluster <- list("1" = c("enz_chy", "pcd_gly", "pcd_arg", "pcd_ala", "pcd_lys", "pcd_asp",
+                        "pcd_his", "pcd_phe", "pcd_thr", "pcd_ile", "pcd_leu", "pcd_val",
+                        "pcd_ser", "pcd_tyr", "enz_cara",
+                        "il_arg", "il_lys", "il_his", "il_asp", "il_leu", "il_ala",
+                        "il_val", "il_ile", "il_phe", "il_thr",
+                        "p_K00186", "p_K07313", "p_K06399", "p_K21910", "p_K13923",
+                        "g_K03778", "g_K02858", "g_K18824", "g_UBA710 sp949284615",
+                        "ssc_100462755", "ssc_445534", "ssc_780428", "ssc_100124377",
+                        "ssc_397604", "ssc_100526104",
+                        "A0A9D4VJF2_PEA", "A0A9D5BG38_PEA", "A0A9D4WR70_PEA", 
+                        "A0A9D4VKF8_PEA", "A0A9D5ANG4_PEA", "A0A9D4WDY2_PEA",
+                        "A0A9D4YLS3_PEA", "A0A9D4X4R2_PEA", "A0A9D4VGC5_PEA",
+                        "A0A9D4VY92_PEA", "A0A9D5AIV8_PEA", "A0A9D5AA18_PEA",
+                        "A0A9D5GVA4_PEA", "A0A9D4YJ49_PEA", "A0A9D4Y8V2_PEA",
+                        "A0A9D4VIN0_PEA", "A0A9D4ZZ34_PEA", "A0A9D4W1I7_PEA",
+                        "A0A9D4XYK4_PEA", "A0A9D5AKX8_PEA", "A0A9D5AHH6_PEA", 
+                        "m_glutamate", "m_aspartate", "m_asparagine", "m_valine",
+                        "m_phenylalanine"),
+                "2" = c("il_total_starch",
+                        "p_K06305", "p_K03640", "p_K01176", "p_K02217",
+                        "p_Basfia_A",
+                        "g_K10542", "g_K03775", "g_K14441", "g_K03592", "g_K04085",
+                        "ssc_397060", "ssc_100511536", "ssc_808504", "ssc_397113",
+                        "A0A9D4VWB7_PEA", "A0A9D4VWB7_PEA", "A0A9D4ZWX1_PEA",
+                        "A0A9D5BJS9_PEA", "A0A9D4WDI6_PEA",
+                        "m_trimethylamine"))
 layout_fr <- layout_with_fr(g, weights = 1-(abs(E(g)$weight)))
 layout_fr <- qgraph.layout.fruchtermanreingold(get.edgelist(g, names = F), #weights = 1-(abs(E(g)$weight)), 
                                                vcount = vcount(g), area = vcount(g)^3, repulse.rad=vcount(g)^3.5)
@@ -1791,7 +1761,13 @@ plot(g, layout = layout_fr, margin = c(0,0,0,0), rescale = F,
      vertex.shape = "rectangle", 
      vertex.size = str_width(V(g)$name)*1.8,
      vertex.size2 = 3,
-     vertex.frame.width = .1)
+     vertex.frame.width = .1,
+     mark.groups = cluster,
+     mark.shape = .5,
+     mark.expand = 0.5, 
+     mark.col = NA,
+     mark.border = "grey10",
+     mark.lwd = 2)
 legend("topright",
        legend = c(NA,1,NA,NA,NA,NA, 0, NA,NA,NA,NA,-1),
        fill = c("white", rev(color.jet(11))),
@@ -1805,6 +1781,8 @@ legend("bottomright",
        cex = 1,
        y.intersp = .8,
        title = "Block", title.adj = 0.2, title.cex = 1.25)
+text(.6, .95, labels = "I", family = "arial", cex = 2)
+text(-.9, -.95, labels = "II", family = "arial", cex = 2)
 dev.off() 
 
 # S11d
@@ -1812,9 +1790,42 @@ dev.off()
 matrix_il_combined_1_4 <- plot_diablo(diablo_il_combined_1_4, cutoff_value = 0.8)
 
 g <- graph_from_adjacency_matrix(matrix_il_combined_1_4, mode = "undirected", weighted = T, diag = F)
+cluster = list("1" = c("pcd_phe", "pcd_pro", "il_pro", "pcd_gly", "il_gly",
+                       "p_K03074", "p_K03072", "p_K03413", "p_K07699", "p_K12257",
+                       "g_K02169", "g_K05934", "g_K12984", 
+                       "g_Bifidobacterium boum",
+                       "ssc_396919", "ssc_100620246", "ssc_396807", "ssc_396766", 
+                       "ssc_397197", "ssc_445461", "ssc_100514249", "ssc_100157995",
+                       "ssc_100158244", "ssc_397316", 
+                       "A0A9D4ZV85_PEA", "A0A9D4VX07_PEA", "A0A9D4XPB1_PEA",
+                       "A0A9D5A4B1_PEA", "A0A9D5A4J7_PEA",
+                       "m_glutamine", "m_phenylalanine", "m_valine", "m_aspartate", 
+                       "m_asparagine", "m_aspartate", "m_glutamate", "m_trimethylamine", "m_acetate"),
+               "2" = c("il_total_starch", "il_insp6", "il_ca", "pcd_ca", "pcd_p",
+                       "p_K12686", "p_K03281", "p_K07571", "p_K02372", "p_Enterocloster",
+                       "g_K00863", "g_K01961", "g_K03718",
+                       "g_Hominenteromicrobium mulieris", "g_Bacteroides xylanisolvens",
+                       "g_Bariatricus sp004560705", 
+                       "ssc_100521982", "ssc_100624628", "ssc_397602", "ssc_396921",
+                       "A0A9D4XTF6_PEA", "A0A9D5BQA3_PEA", "A0A9D4XKQ8_PEA",
+                       "A0A9D5B8M5_PEA",
+                       "m_trimethylamine", "m_propionate"),
+               "3" = c("enz_try", "enz_chy", "enz_amy", "il_p", "il_total_starch", 
+                       "p_K17810", "p_K01493", "p_K05910", "p_K03218",
+                       "g_K03980", "g_K06956", "g_K02502", "g_K03718",
+                       "g_Fusobacterium gastrosuis", 
+                       "ssc_100155038", "ssc_808504", "ssc_397113",
+                       "A0A9D5BN09_PEA", "A0A9D4YP35_PEA", "A0A9D4WQC0_PEA",
+                       "A0A9D4VWB7_PEA", "A0A9D4YG61_PEA",
+                       "m_lactate", "m_tyrosine"),
+               "4" = c("p_K00854", "p_K01738", "p_K19168", "p_K00962",
+                       "g_K00873", "g_K14261", "g_K06074",
+                       "ssc_595116", 
+                       "A0A9D4VQB0_PEA",
+                       "m_butyrate"))
 layout_fr <- layout_with_fr(g, weights = 1-(abs(E(g)$weight)))
 layout_fr <- qgraph.layout.fruchtermanreingold(get.edgelist(g, names = F), #weights = 1-(abs(E(g)$weight)), 
-                                               vcount = vcount(g), area = vcount(g)^3, repulse.rad=vcount(g)^3.4)
+                                               vcount = vcount(g), area = vcount(g)^2.95, repulse.rad=vcount(g)^3.5)
 layout_fr <- norm_coords(layout_fr)
 # assign colors to weight values
 color_index <- round((E(g)$weight + 1) / 2 * 99) + 1
@@ -1840,7 +1851,13 @@ plot(g, layout = layout_fr, margin = c(0,0,0,0), rescale = F,
      vertex.shape = "rectangle", 
      vertex.size = str_width(V(g)$name)*1.8,
      vertex.size2 = 3,
-     vertex.frame.width = .1)
+     vertex.frame.width = .1,
+     mark.groups = cluster,
+     mark.shape = 0.5,
+     mark.expand = 0.5,
+     mark.col = NA,
+     mark.border = "grey10",
+     mark.lwd = 2)
 legend("topright",
        legend = c(NA,1,NA,NA,NA,NA, 0, NA,NA,NA,NA,-1),
        fill = c("white", rev(color.jet(11))),
@@ -1854,6 +1871,10 @@ legend("bottomright",
        y.intersp = .8,
        cex = 1,
        title = "Block", title.adj = 0.2, title.cex = 1.25)
+text(-.7, .2, labels = "I", family = "arial", cex = 2)
+text(.6, .95, labels = "II", family = "arial", cex = 2)
+text(.95, .6, labels = "III", family = "arial", cex = 2)
+text(.8, -.85, labels = "IV", family = "arial", cex = 2)
 dev.off() 
 
 # S12d
@@ -1861,6 +1882,33 @@ dev.off()
 matrix_fa_combined_1_2 <- plot_diablo(diablo_fa_combined_1_2, cutoff_value = 0.75)
 
 g <- graph_from_adjacency_matrix(matrix_fa_combined_1_2, mode = "undirected", weighted = T, diag = F)
+cluster = list("1" = c("enz_try", "fa_insp6", "hg_insp6",
+                       "p_K02652", "p_K02243", "p_K03544", "p_K22339",
+                       "p_Phascolarctobacterium", 
+                       "g_K01267", "g_K02535", "g_K11732", "g_K16363", 
+                       "g_Ruminococcus_C sp937915125",
+                       "ssc_100521982", "ssc_406192", "ssc_733683",
+                       "ssc_396685", "ssc_100312960",
+                       "A0A9D4VYD1_PEA", "A0A9D5BH02_PEA", "A0A9D4Y6S0_PEA",
+                       "A0A9D4VY92_PEA", "A0A9D4X2N1_PEA",
+                       "m_succinate", "m_acetate"),
+               "2" = c("hg_ge", "hg_cp", "fa_p",
+                       "p_K00440", "p_K02032", "p_K07386", "p_K01622", "p_K04088",
+                       "p_K04087", "p_K10192", "p_K03837",
+                       "p_RGIG1693", "p_Hominicoprocola",
+                       "g_K07068", "g_K07701", "g_K17319", "g_K01676",
+                       "g_CAG-103 sp905215475",
+                       "ssc_100627480", "ssc_397140", "ssc_397419",
+                       "A0A9D5B2R9_PEA", "A0A9D4VRF6_PEA", "A0A068LJH6_PEA",
+                       "m_3-phenylpropionate", "m_valerate", "m_propionate"),
+               "3" = c("fa_ti", "fa_cp",
+                       "p_K07335", "p_K07337", "p_K03832", "p_K00348", 
+                       "p_PeH17", "p_UBA4363",
+                       "g_K01846", "g_K01442", "g_K07016",
+                       "ssc_397192", "ssc_100522855", "ssc_100154047",
+                       "A0A9D4W4Y0_PEA", "A0A9D4WKA7_PEA", "D3VND9_PEA", "Q9M3X6_PEA",
+                       "A0A9D4XWP6_PEA",
+                       "m_valine", "m_phenylalanine", "m_methionine", "m_tyrosine"))
 layout_fr <- layout_with_fr(g, weights = 1-(abs(E(g)$weight)))
 layout_fr <- qgraph.layout.fruchtermanreingold(get.edgelist(g, names = F), #weights = 1-(abs(E(g)$weight)), 
                                                vcount = vcount(g), area = vcount(g)^3, repulse.rad=vcount(g)^3.4)
@@ -1889,7 +1937,13 @@ plot(g, layout = layout_fr, margin = c(0,0,0,0), rescale = F,
      vertex.shape = "rectangle", 
      vertex.size = str_width(V(g)$name)*1.9,
      vertex.size2 = 3.5,
-     vertex.frame.width = .1)
+     vertex.frame.width = .1,
+     mark.groups = cluster,
+     mark.shape = 0.5,
+     mark.expand = 0.5,
+     mark.col = NA,
+     mark.border = "grey10",
+     mark.lwd = 2)
 legend("topright",
        legend = c(NA,1,NA,NA,NA,NA, 0, NA,NA,NA,NA,-1),
        fill = c("white", rev(color.jet(11))),
@@ -1903,6 +1957,9 @@ legend("bottomright",
        y.intersp = .8,
        cex = 1,
        title = "Block", title.adj = 0.2, title.cex = 1.25)
+text(.7, .95, labels = "I", family = "arial", cex = 2)
+text(1, .75, labels = "II", family = "arial", cex = 2)
+text(-.9, -.9, labels = "III", family = "arial", cex = 2)
 dev.off() 
 
 # S13d
@@ -1910,6 +1967,23 @@ dev.off()
 matrix_fa_combined_1_3 <- plot_diablo(diablo_fa_combined_1_3, cutoff_value = 0.8)
 
 g <- graph_from_adjacency_matrix(matrix_fa_combined_1_3, mode = "undirected", weighted = T, diag = F)
+cluster = list("1" = c("fa_p", "hg_cp", "fa_ca",
+                       "p_K03231", "p_K01649", "p_K00582", "p_K00123", "p_K00757",
+                       "p_K01596", "p_K00609", "p_K14126", "p_K21990", "p_K01191",
+                       "p_Clostridium_AI", 
+                       "g_K03420", "g_K14098", "g_K07558", "g_K16792", "g_K14115",
+                       "ssc_397108", "ssc_397376", "ssc_100521982", 
+                       "A0A9D5B9N7_PEA", 
+                       "m_acetate", "m_valerate", "m_uracil", "m_propionate", 
+                       "m_butyrate", "m_aspartate", "m_isobutyrate"),
+               "2" = c("fa_cp",
+                       "p_K18676", "p_K01915", "p_K02035", "p_K02051",
+                       "p_PeH17",
+                       "g_K01031", "g_K04835", "g_K01846", "g_K00772", "g_K01758",
+                       "ssc_396921", "ssc_445518", "ssc_396674", "ssc_445532",
+                       "A0A9D4YG61_PEA", "A0A9D4W4Y0_PEA", "A0A9D4W9W0_PEA",
+                       "A0A9D5AY78_PEA", "A0A9D5A4B1_PEA",
+                       "m_methionine", "m_phenylalanine", "m_tyrosine", "m_valine"))
 layout_fr <- layout_with_fr(g, weights = 1-(abs(E(g)$weight)))
 layout_fr <- qgraph.layout.fruchtermanreingold(get.edgelist(g, names = F), #weights = 1-(abs(E(g)$weight)), 
                                                vcount = vcount(g), area = vcount(g)^3, repulse.rad=vcount(g)^3.5)
@@ -1938,7 +2012,13 @@ plot(g, layout = layout_fr, margin = c(0,0,0,0), rescale = F,
      vertex.shape = "rectangle", 
      vertex.size = str_width(V(g)$name)*2.1,
      vertex.size2 = 3.5,
-     vertex.frame.width = .1)
+     vertex.frame.width = .1,
+     mark.groups = cluster,
+     mark.shape = 0.5,
+     mark.expand = 0.5,
+     mark.col = NA,
+     mark.border = "grey10",
+     mark.lwd = 2)
 legend("topright",
        legend = c(NA,1,NA,NA,NA,NA, 0, NA,NA,NA,NA,-1),
        fill = c("white", rev(color.jet(11))),
@@ -1952,55 +2032,8 @@ legend("bottomright",
        y.intersp = .8,
        cex = 1,
        title = "Block", title.adj = 0.2, title.cex = 1.25)
-dev.off() 
-
-# S14d
-
-matrix_fa_combined_1_4 <- plot_diablo(diablo_fa_combined_1_4, cutoff_value = 0.8)
-
-g <- graph_from_adjacency_matrix(matrix_fa_combined_1_4, mode = "undirected", weighted = T, diag = F)
-layout_fr <- layout_with_fr(g, weights = 1-(abs(E(g)$weight)))
-layout_fr <- qgraph.layout.fruchtermanreingold(get.edgelist(g, names = F), #weights = 1-(abs(E(g)$weight)), 
-                                               vcount = vcount(g), area = vcount(g)^3, repulse.rad=vcount(g)^3.4)
-layout_fr <- norm_coords(layout_fr)
-# assign colors to weight values
-color_index <- round((E(g)$weight + 1) / 2 * 99) + 1
-E(g)$color <- color.jet(100)[color_index]
-E(g)$width <- .75
-node_color <- c("#a6cee3", "#b2df8a", "#fb9a99", "#fdbf6f", "#cab2d6", "#ffff99")
-color_vector <- case_when(str_detect(V(g)$name, "^il|^fa|^pc|^hg|^enz") ~ 1,
-                          str_detect(V(g)$name, "^g_") ~ 2,
-                          str_detect(V(g)$name, "^p_") ~ 3,
-                          str_detect(V(g)$name, "^ssc_") ~ 4,
-                          str_detect(V(g)$name, "_PEA$") ~ 5,
-                          str_detect(V(g)$name, "^m_") ~ 6,
-                          .default = 0)
-V(g)$color <- node_color[color_vector]
-V(g)$label.family <- "arial"
-V(g)$label.font <- 1
-V(g)$label.color <- "black"
-V(g)$label.cex <- .8
-jpeg(filename = paste0("plots/", get_script_number(), "_figS14d", save_name, ".jpeg"),
-     width = 20, height = 15, unit="cm", res = 500, pointsize = 12, family = "arial")
-par(mar = c(0,0,0,0))
-plot(g, layout = layout_fr, margin = c(0,0,0,0), rescale = F,
-     vertex.shape = "rectangle", 
-     vertex.size = str_width(V(g)$name)*2.0,
-     vertex.size2 = 3.5,
-     vertex.frame.width = .1)
-legend("topright",
-       legend = c(NA,1,NA,NA,NA,NA, 0, NA,NA,NA,NA,-1),
-       fill = c("white", rev(color.jet(11))),
-       border = NA,
-       y.intersp = .5,
-       cex = 1, text.font = 1,
-       title = "Correlation", title.adj = 0.2, title.cex = 1.25)
-legend("bottomright",
-       legend = c("Nutrition", "Metagenomics", "Metaproteomics", "Host proteins", "Pea proteins", "Metabolomics"),
-       fill = node_color,
-       y.intersp = .8,
-       cex = 1,
-       title = "Block", title.adj = 0.2, title.cex = 1.25)
+text(.7, .95, labels = "I", family = "arial", cex = 2)
+text(-.9, -.9, labels = "II", family = "arial", cex = 2)
 dev.off() 
 
 
@@ -2085,30 +2118,120 @@ p_plot_kegg_for_taxa <- function(input_df, taxa_name, threshold = 1, use_names =
 # figure 4
 # to be determined
 
-matrix_il_combined_1_2 <- plot_diablo(diablo_il_combined_1_2, cutoff_value = 0.8)
+# matrix_il_combined_1_2 <- plot_diablo(diablo_il_combined_1_2, cutoff_value = 0.8)
+# 
+# pdf(NULL)
+# matrix_il_combined_1_2 <- circosPlot(diablo_il_combined_1_2, cutoff = 0, size.variables = 1, line = T, size.labels = 1.5)
+# dev.off()
+# 
+# matrix_il_combined_1_2_sub1sub <- filter_submatrix(matrix_il_combined_1_2,
+#                                          vector = c( "il_tyr", "il_ile", "il_ala",
+#                                                     "il_val", "il_ser", "il_leu", "il_his", "il_asp", "il_lys",
+#                                                     "p_K05910", "p_K00700", 
+#                                                     "g_Prevotella pectinovora",
+#                                                     "g_Prevotella copri",
+#                                                     "g_Prevotella copri_A",
+#                                                     "ssc_733607"))
+# 
+# g <- graph_from_adjacency_matrix(matrix_il_combined_1_2_sub1sub, mode = "undirected", weighted = T, diag = F)
+# layout_fr <- layout_with_fr(g, weights = 1-(abs(E(g)$weight)))
+# layout_fr <- qgraph.layout.fruchtermanreingold(get.edgelist(g, names = F), #weights = 1-(abs(E(g)$weight)), 
+#                                                vcount = vcount(g), area = vcount(g)^3, repulse.rad=vcount(g)^3.4)
+# layout_fr <- norm_coords(layout_fr)
+# # assign colors to weight values
+# color_index <- round((E(g)$weight + 1) / 2 * 99) + 1
+# E(g)$color <- color.jet(100)[color_index]
+# E(g)$width <- 1.75
+# node_color <- c("#a6cee3", "#b2df8a", "#fb9a99", "#fdbf6f", "#cab2d6", "#ffff99")
+# color_vector <- case_when(str_detect(V(g)$name, "^il|^fa|^pc|^hg|^enz") ~ 1,
+#                           str_detect(V(g)$name, "^g_") ~ 2,
+#                           str_detect(V(g)$name, "^p_") ~ 3,
+#                           str_detect(V(g)$name, "^ssc_") ~ 4,
+#                           str_detect(V(g)$name, "_PEA$") ~ 5,
+#                           str_detect(V(g)$name, "^m_") ~ 6,
+#                           .default = 0)
+# V(g)$color <- node_color[color_vector]
+# V(g)$label.family <- "arial"
+# V(g)$label.font <- 1
+# V(g)$label.color <- "black"
+# V(g)$label.cex <- 1
+# jpeg(filename = paste0("plots/", get_script_number(), "_figS4a", save_name, ".jpeg"),
+#      width = 10, height = 7.5, unit="cm", res = 500, pointsize = 12, family = "arial")
+# par(mar = c(0,0,0,0))
+# plot(g, layout = layout.circle, 
+#      margin = c(0,0,0,0), rescale = F,
+#      vertex.shape = "rectangle", 
+#      vertex.size = str_width(V(g)$name)*4.5,
+#      vertex.size2 = 7.5,
+#      vertex.frame.width = .1)
+# # legend("topright",
+# #        legend = c(NA,1,NA,NA,NA,NA, 0, NA,NA,NA,NA,-1),
+# #        fill = c("white", rev(color.jet(11))),
+# #        border = NA,
+# #        y.intersp = .5,
+# #        cex = 1, text.font = 1,
+# #        title = "Correlation", title.adj = 0.2, title.cex = 1.25)
+# # legend("bottomright",
+# #        legend = c("Nutrition", "Metagenomics", "Metaproteomics", "Host proteins", "Pea proteins", "Metabolomics"),
+# #        fill = node_color,
+# #        y.intersp = .8,
+# #        cex = 1,
+# #        title = "Block", title.adj = 0.2, title.cex = 1.25)
+# dev.off() 
+# fig4a <- as.ggplot(pheatmap(matrix_il_combined_1_2_sub1sub))
 
-pdf(NULL)
-matrix_il_combined_1_2 <- circosPlot(diablo_il_combined_1_2, cutoff = 0, size.variables = 1, line = T, size.labels = 1.5)
-dev.off()
+matrix_il_combined_1_2 <- plot_diablo(diablo_il_combined_1_2, cutoff_value = 0.875)
 
-matrix_il_combined_1_2_sub1sub <- filter_submatrix(matrix_il_combined_1_2,
-                                         vector = c( "il_tyr", "il_ile", "il_ala",
-                                                    "il_val", "il_ser", "il_leu", "il_his", "il_asp", "il_lys",
-                                                    "p_K05910", "p_K00700", 
-                                                    "g_Prevotella pectinovora",
-                                                    "g_Prevotella copri",
-                                                    "g_Prevotella copri_A",
-                                                    "ssc_733607"))
-
-g <- graph_from_adjacency_matrix(matrix_il_combined_1_2_sub1sub, mode = "undirected", weighted = T, diag = F)
+g <- graph_from_adjacency_matrix(matrix_il_combined_1_2, mode = "undirected", weighted = T, diag = F)
+cluster <- list("1" = c("il_met", "il_tyr", "il_phe", "il_thr", "il_ile", "il_ala",
+                        "il_val", "il_ser", "il_leu", "il_his", "il_asp", "il_lys",
+                        "il_arg", "pcd_thr", "pcd_ser", "pcd_lys", "pcd_tyr", "pcd_ala",
+                        "pcd_leu", "pcd_his", "pcd_val", "pcd_asp", "pcd_phe", "pcd_ile",
+                        "pcd_arg", "pcd_cp", "pcd_gly",
+                        "p_K05910", "p_K00700",
+                        "g_K05823", 
+                        "g_Prevotella pectinovora", "g_Prevotella sp000436035",
+                        "g_Prevotella copri", "g_Prevotella sp900551275",
+                        "g_Prevotella sp900554835", "g_Prevotella sp021636625",
+                        "g_Prevotella copri_A", "g_Prevotella sp002299635",
+                        "g_Prevotella sp004558865",
+                        "ssc_100155945", "ssc_780428", "ssc_733607", "ssc_100514249",
+                        "ssc_100462755", "ssc_100516959", "ssc_100157834",
+                        "A0A9D4VFD8_PEA", "A0A9D4XAV0_PEA", "A0A9D4WNU2_PEA",
+                        "A0A9D5APF7_PEA", "A0A9D4Y5R6_PEA", "A0A9D5AZK3_PEA",
+                        "A0A9D4WX68_PEA", "A0A9D5BGL9_PEA", "A0A9D5AA18_PEA",
+                        "A0A9D4YJ49_PEA", "A0A9D4VIN0_PEA", "A0A9D4W7S9_PEA",
+                        "m_tyrosine", "m_valine", "m_phenylalanine"),
+                "2" = c("il_tdf",
+                        "p_K01200", "p_K01582", "p_K01585", "p_K01581",
+                        "g_K02444", "g_K11782", "g_K02355", "g_K09949", 
+                        "g_Streptococcus oriscaviae", "g_Mitsuokella multacida",
+                        "ssc_808504", "ssc_733685", "ssc_397113",
+                        "A0A9D5BQA3_PEA",
+                        "m_propionate", "m_trimethylamine"),
+                "3" = c("il_ip_4_1256", 
+                        "p_K11929", "p_K09475", "p_K09476", "p_K14062", "p_K16076", "p_K01533",
+                        "g_K01496", "g_K13935",
+                        "g_Nanosynbacter sp029975625", "g_Escherichia sp004211955",
+                        "g_Flavobacterium psychrophilum_B", "g_Escherichia sp005843885",
+                        "g_JALHET01 sp022839525", "g_Advenella sp023423975",
+                        "A0A9D4WQ37_PEA"), 
+                "4" = c("m_galactose",
+                        "p_K15582", "p_K02913", "p_K03706", "p_K02034", "p_K03768",
+                        "ssc_100158117"),
+                "5" = c("pcd_ca",
+                        "p_K00020", "p_K00042", "p_K03336", 
+                        "g_K00012", "g_K06871",
+                        "ssc_654405", "ssc_100152549",
+                        "A0A9D4WM15_PEA"))
 layout_fr <- layout_with_fr(g, weights = 1-(abs(E(g)$weight)))
 layout_fr <- qgraph.layout.fruchtermanreingold(get.edgelist(g, names = F), #weights = 1-(abs(E(g)$weight)), 
-                                               vcount = vcount(g), area = vcount(g)^3, repulse.rad=vcount(g)^3.4)
+                                               vcount = vcount(g), area = vcount(g)^3, repulse.rad=vcount(g)^3.65)
 layout_fr <- norm_coords(layout_fr)
 # assign colors to weight values
 color_index <- round((E(g)$weight + 1) / 2 * 99) + 1
 E(g)$color <- color.jet(100)[color_index]
-E(g)$width <- 1.75
+E(g)$width <- .75
 node_color <- c("#a6cee3", "#b2df8a", "#fb9a99", "#fdbf6f", "#cab2d6", "#ffff99")
 color_vector <- case_when(str_detect(V(g)$name, "^il|^fa|^pc|^hg|^enz") ~ 1,
                           str_detect(V(g)$name, "^g_") ~ 2,
@@ -2121,32 +2244,208 @@ V(g)$color <- node_color[color_vector]
 V(g)$label.family <- "arial"
 V(g)$label.font <- 1
 V(g)$label.color <- "black"
-V(g)$label.cex <- 1
-jpeg(filename = paste0("plots/", get_script_number(), "_figS4a", save_name, ".jpeg"),
-     width = 10, height = 7.5, unit="cm", res = 500, pointsize = 12, family = "arial")
+V(g)$label.cex <- .75
+jpeg(filename = paste0("plots/", get_script_number(), "_fig4a", save_name, ".jpeg"),
+     width = 20, height = 15, unit="cm", res = 500, pointsize = 12, family = "arial")
 par(mar = c(0,0,0,0))
-plot(g, layout = layout.circle, 
-     margin = c(0,0,0,0), rescale = F,
+plot(g, layout = layout_fr, margin = c(0,0,0,0), rescale = F,
      vertex.shape = "rectangle", 
-     vertex.size = str_width(V(g)$name)*4.5,
-     vertex.size2 = 7.5,
-     vertex.frame.width = .1)
-# legend("topright",
-#        legend = c(NA,1,NA,NA,NA,NA, 0, NA,NA,NA,NA,-1),
-#        fill = c("white", rev(color.jet(11))),
-#        border = NA,
-#        y.intersp = .5,
-#        cex = 1, text.font = 1,
-#        title = "Correlation", title.adj = 0.2, title.cex = 1.25)
-# legend("bottomright",
-#        legend = c("Nutrition", "Metagenomics", "Metaproteomics", "Host proteins", "Pea proteins", "Metabolomics"),
-#        fill = node_color,
-#        y.intersp = .8,
-#        cex = 1,
-#        title = "Block", title.adj = 0.2, title.cex = 1.25)
+     vertex.size = str_width(V(g)$name)*1.8,
+     vertex.size2 = 3,
+     vertex.frame.width = .1, 
+     mark.groups = cluster,
+     mark.shape = .5,
+     mark.expand = 0.5, 
+     mark.col = NA,
+     mark.border = "grey10",
+     mark.lwd = 2)
+legend("topright",
+       legend = c(NA,1,NA,NA,NA,NA, 0, NA,NA,NA,NA,-1),
+       fill = c("white", rev(color.jet(11))),
+       border = NA,
+       y.intersp = .5,
+       cex = 1, text.font = 1,
+       title = "Correlation", title.adj = 0.2, title.cex = 1.25)
+legend("bottomright",
+       legend = c("Nutrition", "Metagenomics", "Metaproteomics", "Host proteins", "Pea proteins", "Metabolomics"),
+       fill = node_color,
+       y.intersp = .8,
+       cex = 1,
+       title = "Block", title.adj = 0.2, title.cex = 1.25)
+text(.9, .95, labels = "I", family = "arial", cex = 2)
+text(.9, -.95, labels = "II", family = "arial", cex = 2)
+text(-.7, -.95, labels = "III", family = "arial", cex = 2)
+text(-1, -.5, labels = "IV", family = "arial", cex = 2)
+text(-1, .5, labels = "V", family = "arial", cex = 2)
 dev.off() 
 
-fig4a <- as.ggplot(pheatmap(matrix_il_combined_1_2_sub1sub))
+pdf(NULL)
+matrix_il_combined_1_2 <- circosPlot(diablo_il_combined_1_2, cutoff = 0, size.variables = 1, line = T, size.labels = 1.5)
+dev.off()
+
+il_combined_1_2_sub1 <- filter_submatrix(matrix_il_combined_1_2,
+                                         vector = c("il_met", "il_tyr", "il_phe", "il_thr", "il_ile", "il_ala",
+                                                    "il_val", "il_ser", "il_leu", "il_his", "il_asp", "il_lys",
+                                                    "il_arg", "pcd_thr", "pcd_ser", "pcd_lys", "pcd_tyr", "pcd_ala",
+                                                    "pcd_leu", "pcd_his", "pcd_val", "pcd_asp", "pcd_phe", "pcd_ile",
+                                                    "pcd_arg", "pcd_cp", "pcd_gly",
+                                                    "p_K05910", "p_K00700",
+                                                    "g_K05823", 
+                                                    "g_Prevotella pectinovora", "g_Prevotella sp000436035",
+                                                    "g_Prevotella copri", "g_Prevotella sp900551275",
+                                                    "g_Prevotella sp900554835", "g_Prevotella sp021636625",
+                                                    "g_Prevotella copri_A", "g_Prevotella sp002299635",
+                                                    "g_Prevotella sp004558865",
+                                                    "ssc_100155945", "ssc_780428", "ssc_733607", "ssc_100514249",
+                                                    "ssc_100462755", "ssc_100516959", "ssc_100157834",
+                                                    "A0A9D4VFD8_PEA", "A0A9D4XAV0_PEA", "A0A9D4WNU2_PEA",
+                                                    "A0A9D5APF7_PEA", "A0A9D4Y5R6_PEA", "A0A9D5AZK3_PEA",
+                                                    "A0A9D4WX68_PEA", "A0A9D5BGL9_PEA", "A0A9D5AA18_PEA",
+                                                    "A0A9D4YJ49_PEA", "A0A9D4VIN0_PEA", "A0A9D4W7S9_PEA",
+                                                    "m_tyrosine", "m_valine", "m_phenylalanine"))
+
+fig4b <- as.ggplot(pheatmap(il_combined_1_2_sub1, fontsize_row = 8, fontsize_col = 14))
+
+empty <- ggplot() +
+  theme_void()
+
+fig4 <- (empty / fig4b) +
+  plot_layout(heights = c(4,4)) +
+  plot_annotation(tag_levels = list(c("a", "b"))) &
+  theme(plot.tag = element_text(size = 22, face = "bold"))
+
+ggsave(filename= "92_fig4.jpeg",
+       plot = fig4,
+       device= "jpeg", 
+       path = "plots", 
+       units = "cm", 
+       width = 20,
+       height = 25,
+       scale=2,
+       dpi=300)
+
+# Fig 5
+
+matrix_fa_combined_1_4 <- plot_diablo(diablo_fa_combined_1_4, cutoff_value = 0.8)
+
+g <- graph_from_adjacency_matrix(matrix_fa_combined_1_4, mode = "undirected", weighted = T, diag = F)
+cluster = list("1" = c("fa_k", "hg_dm", "hg_tdf", "fa_ti", 
+                        "p_K06410", "p_K04079", "p_K02652", "p_K02662", "p_K02243",
+                        "g_K01267",
+                        "g_UMGS124 sp019420325", "g_UMGS124 sp902464015", 
+                        "g_HGM13006 sp029012465", "g_UMGS124 sp900555105",
+                        "ssc_100525899", "ssc_407610", "ssc_100037943", "ssc_445461",
+                        "ssc_397397",
+                        "A0A9D5BQA3_PEA", "A0A9D5BN09_PEA", "A0A9D4XTC5_PEA", 
+                        "A0A9D4VJF2_PEA", "A0A9D4WCI6_PEA",
+                        "m_acetate", "m_butyrate", "m_propionate", "m_methionine",
+                        "m_galactose"),
+                "2" = c("enz_carb", "enz_try", "enz_chy", 
+                        "p_K21471", "p_K01447", "p_K13694", "p_K19224", "p_K01278",
+                        "p_K04488",
+                        "g_Roseburia sp902781225", "g_CALXSC01 sp934747265",
+                        "g_Ruminiclostridium_E sp945921515", "g_UBA10677 sp934270565",
+                        "g_CAG-273 sp003507395",
+                        "ssc_397520", "ssc_100158015", "ssc_100737088", "ssc_397080",
+                        "ssc_397012",
+                        "A0A9D4WJM1_PEA", "A0A9D4X6Z1_PEA", "A0A9D4WX68_PEA",
+                        "A0A9D4Y3P4_PEA", "A0A9D5BFI9_PEA",
+                        "m_isovalerate", "m_phenylacetate", "m_isobutyrate"))
+layout_fr <- layout_with_fr(g, weights = 1-(abs(E(g)$weight)))
+layout_fr <- qgraph.layout.fruchtermanreingold(get.edgelist(g, names = F), #weights = 1-(abs(E(g)$weight)), 
+                                               vcount = vcount(g), area = vcount(g)^3, repulse.rad=vcount(g)^3.54)
+layout_fr <- norm_coords(layout_fr)
+# assign colors to weight values
+color_index <- round((E(g)$weight + 1) / 2 * 99) + 1
+E(g)$color <- color.jet(100)[color_index]
+E(g)$width <- .75
+node_color <- c("#a6cee3", "#b2df8a", "#fb9a99", "#fdbf6f", "#cab2d6", "#ffff99")
+color_vector <- case_when(str_detect(V(g)$name, "^il|^fa|^pc|^hg|^enz") ~ 1,
+                          str_detect(V(g)$name, "^g_") ~ 2,
+                          str_detect(V(g)$name, "^p_") ~ 3,
+                          str_detect(V(g)$name, "^ssc_") ~ 4,
+                          str_detect(V(g)$name, "_PEA$") ~ 5,
+                          str_detect(V(g)$name, "^m_") ~ 6,
+                          .default = 0)
+V(g)$color <- node_color[color_vector]
+V(g)$label.family <- "arial"
+V(g)$label.font <- 1
+V(g)$label.color <- "black"
+V(g)$label.cex <- .8
+jpeg(filename = paste0("plots/", get_script_number(), "_fig5a", save_name, ".jpeg"),
+     width = 20, height = 15, unit="cm", res = 500, pointsize = 12, family = "arial")
+par(mar = c(0,0,0,0))
+plot(g, layout = layout_fr, margin = c(0,0,0,0), rescale = F,
+     vertex.shape = "rectangle", 
+     vertex.size = str_width(V(g)$name)*2.0,
+     vertex.size2 = 3.5,
+     vertex.frame.width = .1,
+     mark.groups = cluster,
+     mark.shape = 0.5,
+     mark.expand = 0.5,
+     mark.col = NA,
+     mark.border = "grey10",
+     mark.lwd = 2)
+legend("topright",
+       legend = c(NA,1,NA,NA,NA,NA, 0, NA,NA,NA,NA,-1),
+       fill = c("white", rev(color.jet(11))),
+       border = NA,
+       y.intersp = .5,
+       cex = 1, text.font = 1,
+       title = "Correlation", title.adj = 0.2, title.cex = 1.25)
+legend("bottomright",
+       legend = c("Nutrition", "Metagenomics", "Metaproteomics", "Host proteins", "Pea proteins", "Metabolomics"),
+       fill = node_color,
+       y.intersp = .8,
+       cex = 1,
+       title = "Block", title.adj = 0.2, title.cex = 1.25)
+text(.6, .95, labels = "I", family = "arial", cex = 2)
+text(-.9, -.95, labels = "II", family = "arial", cex = 2)
+dev.off() 
+
+pdf(NULL)
+matrix_fa_combined_1_4 <- circosPlot(diablo_fa_combined_1_4, cutoff = 0, size.variables = 1, line = T, size.labels = 1.5)
+dev.off()
+
+fa_combined_1_4_sub1 <- filter_submatrix(matrix_fa_combined_1_4,
+                                         vector = c("fa_k", "hg_dm", "hg_tdf", "fa_ti", 
+                                                    "p_K06410", "p_K04079", "p_K02652", "p_K02662", "p_K02243",
+                                                    "g_K01267",
+                                                    "g_UMGS124 sp019420325", "g_UMGS124 sp902464015", 
+                                                    "g_HGM13006 sp029012465", "g_UMGS124 sp900555105",
+                                                    "ssc_100525899", "ssc_407610", "ssc_100037943", "ssc_445461",
+                                                    "ssc_397397",
+                                                    "A0A9D5BQA3_PEA", "A0A9D5BN09_PEA", "A0A9D4XTC5_PEA", 
+                                                    "A0A9D4VJF2_PEA", "A0A9D4WCI6_PEA",
+                                                    "m_acetate", "m_butyrate", "m_propionate", "m_methionine",
+                                                    "m_galactose"))
+
+fig5b <- as.ggplot(pheatmap(fa_combined_1_4_sub1, fontsize_row = 12, fontsize_col = 16))
+
+fig5c <- p_plot_kegg_taxa_origin(input_df = proteins_func_tax_combined_fa, kegg_ko_filter = "K02662") +
+  labs(fill = "Genus", title = "K02662") +
+  theme(axis.title.x = element_blank())
+
+empty <- ggplot() +
+  theme_void()
+
+fig5bc <- (fig5b | fig5c) +
+  plot_layout(widths = c(24,2))
+
+fig5 <- (empty / fig5bc) +
+  plot_layout(heights = c(4,4)) +
+  plot_annotation(tag_levels = list(c("a", "b", "c"))) &
+  theme(plot.tag = element_text(size = 22, face = "bold"))
+
+ggsave(filename= "92_fig5.jpeg",
+       plot = fig5,
+       device= "jpeg", 
+       path = "plots", 
+       units = "cm", 
+       width = 20,
+       height = 25,
+       scale=2,
+       dpi=300) 
 
 # Heat maps
 library(ggplotify)
@@ -2180,6 +2479,7 @@ il_combined_1_2_sub2 <- filter_submatrix(matrix_il_combined_1_2,
                                          vector = c("il_tdf",
                                                     "p_K01200", "p_K01582", "p_K01585", "p_K01581",
                                                     "g_K02444", "g_K11782", "g_K02355", "g_K09949", 
+                                                    "g_Streptococcus oriscaviae", "g_Mitsuokella multacida",
                                                     "ssc_808504", "ssc_733685", "ssc_397113",
                                                     "A0A9D5BQA3_PEA",
                                                     "m_propionate", "m_trimethylamine"))
@@ -2207,24 +2507,20 @@ il_combined_1_2_sub5 <- filter_submatrix(matrix_il_combined_1_2,
 
 
 
-a <- as.ggplot(pheatmap(il_combined_1_2_sub1, fontsize_row = 10))
-b <- as.ggplot(pheatmap(il_combined_1_2_sub2, fontsize = 16))
+#a <- as.ggplot(pheatmap(il_combined_1_2_sub1, fontsize_row = 10))
+a <- as.ggplot(pheatmap(il_combined_1_2_sub2, fontsize = 16))
 # c <- as.ggplot(pheatmap(il_combined_1_2_sub3))
 # d <- as.ggplot(pheatmap(il_combined_1_2_sub4))
 # e <- as.ggplot(pheatmap(il_combined_1_2_sub5))
 
-c <- p_plot_kegg_taxa_origin(input_df = proteins_func_tax_combined_il, kegg_ko_filter = "K00700") +
+b <- p_plot_kegg_taxa_origin(input_df = proteins_func_tax_combined_il, kegg_ko_filter = "K00700") +
   labs(fill = "Genus")
 
-d <- p_plot_kegg_taxa_origin(input_df = proteins_func_tax_combined_il, kegg_ko_filter = "K01200") +
+c <- p_plot_kegg_taxa_origin(input_df = proteins_func_tax_combined_il, kegg_ko_filter = "K01200") +
   labs(fill = "Genus")
 
-bcd <- (b | (c/d)) +
-  plot_layout(widths = c(12,4))
-
-figS15 <- a /
-  bcd +
-  plot_layout(heights = c(8,5)) +
+figS15 <- (a | (b/c)) +
+  plot_layout(widths = c(12,4)) +
   plot_annotation(tag_levels = "a") &
   theme(plot.tag = element_text(size = 22, face = "bold"))
   
@@ -2234,7 +2530,7 @@ ggsave(filename= "92_figS15.jpeg",
        path = "plots", 
        units = "cm", 
        width = 20,
-       height = 25,
+       height = 12,
        scale=2,
        dpi=300)         
 
@@ -2276,10 +2572,16 @@ il_combined_1_3_sub2 <- filter_submatrix(matrix_il_combined_1_3,
 a <- as.ggplot(pheatmap(il_combined_1_3_sub1))
 b <- as.ggplot(pheatmap(il_combined_1_3_sub2, fontsize_col = 14, fontsize_row =10))
 
-c <- p_plot_kegg_taxa_origin(input_df = proteins_func_tax_combined_il, kegg_ko_filter = "K01176") +
+c <- p_plot_kegg_taxa_origin(input_df = proteins_func_tax_combined_il, kegg_ko_filter = "K07699") +
   labs(fill = "Genus")
 
-bc <- (b | c) +
+d <- p_plot_kegg_taxa_origin(input_df = proteins_func_tax_combined_il, kegg_ko_filter = "K01176") +
+  labs(fill = "Genus")
+
+cd <- (c / d) +
+  plot_layout(heights = c(4,4))
+
+bc <- (b | cd) +
   plot_layout(widths = c(12,4))
 
 figS16 <- a /
@@ -2313,7 +2615,8 @@ il_combined_1_4_sub1 <- filter_submatrix(matrix_il_combined_1_4,
                                                     "A0A9D4ZV85_PEA", "A0A9D4VX07_PEA", "A0A9D4XPB1_PEA",
                                                     "A0A9D5A4B1_PEA", "A0A9D5A4J7_PEA",
                                                     "m_glutamine", "m_phenylalanine", "m_valine", "m_aspartate", 
-                                                    "m_asparagine", "m_aspartate", "m_glutamate", "m_trimethylamine"))
+                                                    "m_asparagine", "m_aspartate", "m_glutamate", "m_trimethylamine",
+                                                    "m_acetate"))
 
 il_combined_1_4_sub2 <- filter_submatrix(matrix_il_combined_1_4,
                                          vector = c("il_total_starch", "il_insp6", "il_ca", "pcd_ca", "pcd_p",
@@ -2504,7 +2807,7 @@ fa_combined_1_4_sub1 <- filter_submatrix(matrix_fa_combined_1_4,
                                                     "m_galactose"))
 
 fa_combined_1_4_sub2 <- filter_submatrix(matrix_fa_combined_1_4,
-                                         vector = c("enz_carb", "enz_try", 
+                                         vector = c("enz_carb", "enz_try", "enz_chy",
                                                     "p_K21471", "p_K01447", "p_K13694", "p_K19224", "p_K01278",
                                                     "p_K04488",
                                                     "g_Roseburia sp902781225", "g_CALXSC01 sp934747265",
@@ -2516,17 +2819,14 @@ fa_combined_1_4_sub2 <- filter_submatrix(matrix_fa_combined_1_4,
                                                     "A0A9D4Y3P4_PEA", "A0A9D5BFI9_PEA",
                                                     "m_isovalerate", "m_phenylacetate", "m_isobutyrate"))
 
-a <- as.ggplot(pheatmap(fa_combined_1_4_sub1, fontsize = 12))
-b <- as.ggplot(pheatmap(fa_combined_1_4_sub2, fontsize_row = 12))
+#a <- as.ggplot(pheatmap(fa_combined_1_4_sub1, fontsize = 12))
+a <- as.ggplot(pheatmap(fa_combined_1_4_sub2, fontsize_row = 12))
 
-c <- p_plot_kegg_taxa_origin(input_df = proteins_func_tax_combined_fa, kegg_ko_filter = "K02662") +
+b <- p_plot_kegg_taxa_origin(input_df = proteins_func_tax_combined_fa, kegg_ko_filter = "K02662") +
   labs(fill = "Genus")
 
-bc <- (b | c) +
-  plot_layout(widths = c(24,4))
-
-figS20 <- a / bc +
-  plot_layout(heights = c(4,4)) +
+figS20 <- (a | b) +
+  plot_layout(widths = c(24,4)) +
   plot_annotation(tag_levels = "a") &
   theme(plot.tag = element_text(size = 22, face = "bold"))
 
@@ -2536,6 +2836,6 @@ ggsave(filename= "92_figS20.jpeg",
        path = "plots", 
        units = "cm", 
        width = 20,
-       height = 25,
+       height = 12,
        scale=2,
        dpi=300) 
