@@ -176,7 +176,7 @@ plotting_table <- aggregated_table_il_g %>%
 
 e <- ggplot(plotting_table, aes(x = diet, y = rel_abd, fill = name)) +
   geom_bar(stat = "identity", position = "stack", width = 0.8) +
-  labs(x = "Diet", y = "Relative abundance (%)", fill = "Genera", subtitle = "") +
+  labs(x = "Diet", y = "Relative abundance, %", fill = "Genera", subtitle = "") +
   scale_fill_manual(values = filter(color_df, name %in% plotting_table$name)$color) +
   scale_y_continuous(limits = c(0,100.01), expand = c(0,0))
 
@@ -188,7 +188,7 @@ plotting_table <- aggregated_table_fa_g %>%
 
 f <- ggplot(plotting_table, aes(x = diet, y = rel_abd, fill = name)) +
   geom_bar(stat = "identity", position = "stack", width = 0.8) +
-  labs(x = "Diet", y = "Relative abundance (%)", fill = "Genera", subtitle = "") +
+  labs(x = "Diet", y = "Relative abundance, %", fill = "Genera", subtitle = "") +
   scale_fill_manual(values = filter(color_df, name %in% plotting_table$name)$color) +
   scale_y_continuous(limits = c(0,100.01), expand = c(0,0))
 
@@ -210,6 +210,7 @@ ggsave(filename= "92_fig1.jpeg",
        height = 25,
        scale=2,
        dpi=300)
+
 
 # differential abundance reads level
 
@@ -261,16 +262,16 @@ figS1b <- create_volcano_plot_from_list(res_pair_list, title = "") +
   scale_size_manual(values = c(2,4,4,4,4))
 
 legend <- tibble(Significance = c("positive LFC and passed sensitivity analysis",
-                       "positive LFC and not passed sensitivity analysis",
-                       "negative LFC and passed sensitivity analysis",
-                       "negative LFC and not passed sensitivity analysis")) %>%
+                                  "positive LFC and not passed sensitivity analysis",
+                                  "negative LFC and passed sensitivity analysis",
+                                  "negative LFC and not passed sensitivity analysis")) %>%
   mutate(Significant = factor(Significance, levels = c("positive LFC and passed sensitivity analysis",
-                                                      "positive LFC and not passed sensitivity analysis",
-                                                      "negative LFC and passed sensitivity analysis",
-                                                      "negative LFC and not passed sensitivity analysis"))) %>%
+                                                       "positive LFC and not passed sensitivity analysis",
+                                                       "negative LFC and passed sensitivity analysis",
+                                                       "negative LFC and not passed sensitivity analysis"))) %>%
   ggplot(aes(x = 1, y = 1,fill = Significance)) +
   geom_tile() +
-  scale_fill_manual(values = c("#33a02c", "#b2df8a", "#e31a1c", "#fb9a99")) +
+  scale_fill_manual(values = c("#fb9a99","#e31a1c","#b2df8a", "#33a02c")) +
   guides(fill=guide_legend(ncol=2))
 legend <- get_legend(legend)
 ggdraw(legend)
@@ -876,7 +877,7 @@ plotting_table <- aggregated_table_il_p %>%
 
 fig2f <- ggplot(plotting_table, aes(x = diet, y = rel_abd, fill = name)) +
   geom_bar(stat = "identity", position = "stack", width = 0.8) +
-  labs(x = "Diet", y = "Relative abundance (%)", fill = "Genera", subtitle = "") +
+  labs(x = "Diet", y = "Relative abundance, %", fill = "Genera", subtitle = "") +
   scale_fill_manual(values = filter(color_df, name %in% plotting_table$name)$color) +
   scale_y_continuous(limits = c(0,100.01), expand = c(0,0))
 
@@ -888,7 +889,7 @@ plotting_table <- aggregated_table_fa_p %>%
 
 fig2g <- ggplot(plotting_table, aes(x = diet, y = rel_abd, fill = name)) +
   geom_bar(stat = "identity", position = "stack", width = 0.8) +
-  labs(x = "Diet", y = "Relative abundance (%)", fill = "Genera", subtitle = "") +
+  labs(x = "Diet", y = "Relative abundance, %", fill = "Genera", subtitle = "") +
   scale_fill_manual(values = filter(color_df, name %in% plotting_table$name)$color) +
   scale_y_continuous(limits = c(0,100.01), expand = c(0,0))
 
@@ -1172,7 +1173,7 @@ legend <- tibble(Significance = c("positive LFC and passed sensitivity analysis"
                                                        "negative LFC and not passed sensitivity analysis"))) %>%
   ggplot(aes(x = 1, y = 1,fill = Significance)) +
   geom_tile() +
-  scale_fill_manual(values = c("#33a02c", "#b2df8a", "#e31a1c", "#fb9a99")) +
+  scale_fill_manual(values = c("#fb9a99","#e31a1c","#b2df8a", "#33a02c")) +
   guides(fill=guide_legend(ncol=2))
 legend <- get_legend(legend)
 ggdraw(legend)
@@ -1244,21 +1245,6 @@ figS7a <- (p1[[1]] +
 
 figS7b <- create_volcano_plot_from_list(res_pair_list, title = "") +
   scale_size_manual(values = c(2,4,4,4,4))
-
-legend <- tibble(Significance = c("positive LFC and passed sensitivity analysis",
-                                  "positive LFC and not passed sensitivity analysis",
-                                  "negative LFC and passed sensitivity analysis",
-                                  "negative LFC and not passed sensitivity analysis")) %>%
-  mutate(Significant = factor(Significance, levels = c("positive LFC and passed sensitivity analysis",
-                                                       "positive LFC and not passed sensitivity analysis",
-                                                       "negative LFC and passed sensitivity analysis",
-                                                       "negative LFC and not passed sensitivity analysis"))) %>%
-  ggplot(aes(x = 1, y = 1,fill = Significance)) +
-  geom_tile() +
-  scale_fill_manual(values = c("#33a02c", "#b2df8a", "#e31a1c", "#fb9a99")) +
-  guides(fill=guide_legend(ncol=2))
-legend <- get_legend(legend)
-ggdraw(legend)
 
 figS7 <- figS7a / figS7b / legend +
   plot_layout(heights = c(4,4,6,1)) +
@@ -2423,7 +2409,7 @@ fa_combined_1_4_sub1 <- filter_submatrix(matrix_fa_combined_1_4,
 fig5b <- as.ggplot(pheatmap(fa_combined_1_4_sub1, fontsize_row = 12, fontsize_col = 16))
 
 fig5c <- p_plot_kegg_taxa_origin(input_df = proteins_func_tax_combined_fa, kegg_ko_filter = "K02662") +
-  labs(fill = "Genus", title = "K02662") +
+  labs(fill = "Genus", title = "K02662", y = "Relative abundance, %") +
   theme(axis.title.x = element_blank())
 
 empty <- ggplot() +
@@ -2514,10 +2500,10 @@ a <- as.ggplot(pheatmap(il_combined_1_2_sub2, fontsize = 16))
 # e <- as.ggplot(pheatmap(il_combined_1_2_sub5))
 
 b <- p_plot_kegg_taxa_origin(input_df = proteins_func_tax_combined_il, kegg_ko_filter = "K00700") +
-  labs(fill = "Genus")
+  labs(fill = "Genus", y = "Relative abundance, %")
 
 c <- p_plot_kegg_taxa_origin(input_df = proteins_func_tax_combined_il, kegg_ko_filter = "K01200") +
-  labs(fill = "Genus")
+  labs(fill = "Genus", y = "Relative abundance, %")
 
 figS15 <- (a | (b/c)) +
   plot_layout(widths = c(12,4)) +
@@ -2573,10 +2559,10 @@ a <- as.ggplot(pheatmap(il_combined_1_3_sub1))
 b <- as.ggplot(pheatmap(il_combined_1_3_sub2, fontsize_col = 14, fontsize_row =10))
 
 c <- p_plot_kegg_taxa_origin(input_df = proteins_func_tax_combined_il, kegg_ko_filter = "K07699") +
-  labs(fill = "Genus")
+  labs(fill = "Genus", y = "Relative abundance, %")
 
 d <- p_plot_kegg_taxa_origin(input_df = proteins_func_tax_combined_il, kegg_ko_filter = "K01176") +
-  labs(fill = "Genus")
+  labs(fill = "Genus", y = "Relative abundance, %")
 
 cd <- (c / d) +
   plot_layout(heights = c(4,4))
@@ -2713,9 +2699,10 @@ c <- as.ggplot(pheatmap(fa_combined_1_2_sub2, fontsize = 14))
 #b <- as.ggplot(pheatmap(fa_combined_1_2_sub1))
 
 b <- p_plot_kegg_taxa_origin(input_df = proteins_func_tax_combined_fa, kegg_ko_filter = "K22339") +
-  labs(fill = "Genus")
+  labs(fill = "Genus", y = "Relative abundance, %")
 
-d <- p_plot_kegg_for_taxa(input_df = proteins_func_tax_combined_fa, taxa_name = "PeH17", use_names = F)
+d <- p_plot_kegg_for_taxa(input_df = proteins_func_tax_combined_fa, taxa_name = "PeH17", use_names = F) +
+  labs(y = "Relative abundance, %")
 
 
 ab <- (a | b) +
@@ -2769,7 +2756,7 @@ a <- as.ggplot(pheatmap(fa_combined_1_3_sub1, fontsize_row = 14))
 c <- as.ggplot(pheatmap(fa_combined_1_3_sub2, fontsize = 14))
 
 b <- p_plot_kegg_taxa_origin(input_df = proteins_func_tax_combined_fa, kegg_ko_filter = "K01596") +
-  labs(fill = "Genus")
+  labs(fill = "Genus", y = "Relative abundance, %")
 
 ab <- (a | b) +
   plot_layout(widths = c(16,4))
@@ -2823,7 +2810,7 @@ fa_combined_1_4_sub2 <- filter_submatrix(matrix_fa_combined_1_4,
 a <- as.ggplot(pheatmap(fa_combined_1_4_sub2, fontsize_row = 12))
 
 b <- p_plot_kegg_taxa_origin(input_df = proteins_func_tax_combined_fa, kegg_ko_filter = "K02662") +
-  labs(fill = "Genus")
+  labs(fill = "Genus", y = "Relative abundance, %")
 
 figS20 <- (a | b) +
   plot_layout(widths = c(24,4)) +
