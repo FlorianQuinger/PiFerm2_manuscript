@@ -276,10 +276,10 @@ legend <- tibble(Significance = c("positive LFC and passed sensitivity analysis"
 legend <- get_legend(legend)
 ggdraw(legend)
 
-figS1 <- figS1a / figS1b / legend +
-  plot_layout(heights = c(3,6,1)) +
-  plot_annotation(tag_levels = list(c("a", "", "b"))) &
-  theme(plot.tag = element_text(size = 22, face = "bold"))
+figS1 <- figS1a / legend +
+  plot_layout(heights = c(3,1))# +
+  #plot_annotation(tag_levels = list(c("a", "", "b"))) &
+  #theme(plot.tag = element_text(size = 22, face = "bold"))
 
 ggsave(filename= "92_figS1.jpeg",
        plot = figS1,
@@ -287,7 +287,7 @@ ggsave(filename= "92_figS1.jpeg",
        path = "plots", 
        units = "cm", 
        width = 20,
-       height = 15,
+       height = 8,
        scale=2,
        dpi=300)
 
@@ -343,10 +343,10 @@ figS2b <- create_volcano_plot_from_list(res_pair_list, title = "") +
   scale_size_manual(values = c(2,4,4,4,4))
 
 
-figS2 <- figS2a / figS2b / legend +
-  plot_layout(heights = c(3,3,6,1)) +
-  plot_annotation(tag_levels = list(c("a", "", "", "", "", "b"))) &
-  theme(plot.tag = element_text(size = 22, face = "bold"))
+figS2 <- figS2a / legend +
+  plot_layout(heights = c(3,3,1)) #+
+  #plot_annotation(tag_levels = list(c("a", "", "", "", "", "b"))) &
+  #theme(plot.tag = element_text(size = 22, face = "bold"))
 
 ggsave(filename= "92_figS2.jpeg",
        plot = figS2,
@@ -354,7 +354,7 @@ ggsave(filename= "92_figS2.jpeg",
        path = "plots", 
        units = "cm", 
        width = 20,
-       height = 20,
+       height = 10,
        scale=2,
        dpi=300)
 
@@ -412,10 +412,10 @@ figS3b <- create_volcano_plot_from_list(res_pair_list, title = "") +
   scale_size_manual(values = c(2,4,4,4,4))
 
 
-figS3 <- figS3a / figS3b / legend +
-  plot_layout(heights = c(4,4,4,1)) +
-  plot_annotation(tag_levels = list(c("a", "", "", "", "", "", "b"))) &
-  theme(plot.tag = element_text(size = 22, face = "bold"))
+figS3 <- figS3a / legend +
+  plot_layout(heights = c(4,4,1)) #+
+  # plot_annotation(tag_levels = list(c("a", "", "", "", "", "", "b"))) &
+  # theme(plot.tag = element_text(size = 22, face = "bold"))
 
 ggsave(filename= "92_figS3.jpeg",
        plot = figS3,
@@ -423,7 +423,7 @@ ggsave(filename= "92_figS3.jpeg",
        path = "plots", 
        units = "cm", 
        width = 20,
-       height = 25,
+       height = 15,
        scale=2,
        dpi=300)
 
@@ -1178,10 +1178,10 @@ legend <- tibble(Significance = c("positive LFC and passed sensitivity analysis"
 legend <- get_legend(legend)
 ggdraw(legend)
 
-figS6 <- figS6a / figS6b / legend +
-  plot_layout(heights = c(3,6,1)) +
-  plot_annotation(tag_levels = list(c("a", "", "b"))) &
-  theme(plot.tag = element_text(size = 22, face = "bold"))
+figS6 <- figS6a / legend +
+  plot_layout(heights = c(3,1)) #+
+  # plot_annotation(tag_levels = list(c("a", "", "b"))) &
+  # theme(plot.tag = element_text(size = 22, face = "bold"))
 
 ggsave(filename= "92_figS6.jpeg",
        plot = figS6,
@@ -1189,7 +1189,7 @@ ggsave(filename= "92_figS6.jpeg",
        path = "plots", 
        units = "cm", 
        width = 20,
-       height = 15,
+       height = 8,
        scale=2,
        dpi=300)
 
@@ -1246,10 +1246,10 @@ figS7a <- (p1[[1]] +
 figS7b <- create_volcano_plot_from_list(res_pair_list, title = "") +
   scale_size_manual(values = c(2,4,4,4,4))
 
-figS7 <- figS7a / figS7b / legend +
-  plot_layout(heights = c(4,4,6,1)) +
-  plot_annotation(tag_levels = list(c("a", "", "","","","", "b"))) &
-  theme(plot.tag = element_text(size = 22, face = "bold"))
+figS7 <- figS7a / legend +
+  plot_layout(heights = c(4,4,1)) #+
+  # plot_annotation(tag_levels = list(c("a", "", "","","","", "b"))) &
+  # theme(plot.tag = element_text(size = 22, face = "bold"))
 
 ggsave(filename= "92_figS7.jpeg",
        plot = figS7,
@@ -1257,7 +1257,7 @@ ggsave(filename= "92_figS7.jpeg",
        path = "plots", 
        units = "cm", 
        width = 20,
-       height = 25,
+       height = 15,
        scale=2,
        dpi=300)
 
@@ -1342,6 +1342,334 @@ ggsave(filename= "92_figS8.jpeg",
        height = 25,
        scale=2,
        dpi=300)
+
+#########
+## Mantel tests
+###########
+
+source(here("60_correlation_functions.R"))
+
+# meta
+
+meta <- readRDS("clean/meta1.RDS") %>%
+  mutate(sampleno = str_extract(sampleid, "[0-9]{2}$")) %>%
+  filter(sampleid != "103")
+
+meta_il <- filter_ileum(meta) %>%
+  arrange(sampleno)
+meta_fa <- filter_faeces(meta) %>%
+  arrange(sampleno)
+
+meta_nutrition <- meta %>%
+  dplyr::select(animal, period, sampleno) %>%
+  distinct()
+
+# nutrition
+
+pcd <- read_in_nutrition(here("data/nutrition_pcd.txt")) %>%
+  prepare_nutrition_for_correlation() %>% 
+  filter(sampleno != "03") %>% #remove sample 103 for compatibility
+  dplyr::select(-c(insp6_p, n, tdf)) %>%
+  dplyr::rename(tdf = tdf_single) 
+
+hindgut <- read_in_nutrition(here("data/nutrition_hindgut.txt"))  %>%
+  prepare_nutrition_for_correlation() %>%
+  dplyr::select(-c(insp6_p, n))
+
+feed_analysis <- read_in_nutrition(here("data/nutrition_feed_analysis.txt")) %>% 
+  dplyr::select(-c("ndf", "adf", "ti", "ip_5_12346", "ip_5_12345", "insp6_p", "myo_inositol...47")) %>%
+  prepare_nutrition_for_correlation()
+
+feed_analysis_il <- feed_analysis %>%
+  filter(sampleno != "03")
+
+digesta_analysis <- read_in_nutrition(here("data/nutrition_digesta_analysis.txt")) %>%
+  prepare_nutrition_for_correlation() %>%
+  filter(sampleno != "03") %>% #remove sample 103 for compatibility
+  dplyr::select(-c(ip_3_126_145_245, ip_4_1234)) %>%
+  dplyr::select(-c(insp6_p, n, ti...12, ti...31))
+
+faeces_analysis <- read_in_nutrition(here("data/nutrition_faeces_analysis.txt")) %>%
+  prepare_nutrition_for_correlation() %>%
+  dplyr::select(-total_starch) %>%
+  dplyr::select(-starts_with("ip")) %>%
+  dplyr::select(-c(insp6_p, n))
+
+# enzymes
+
+enzymes <- readRDS("clean/16_enzymes_dm.RDS")
+
+enzymes_il <- meta %>%
+  inner_join(enzymes, by = "sampleid") %>%
+  filter(matrix == "ileal digesta") %>%
+  dplyr::select(-c(sampleid, matrix, sampling_time, animal, period, square, diet, description, ph, dry_matter),
+                -ends_with("fm")) %>%
+  arrange(sampleno) %>% 
+  dplyr::rename_with(~str_remove(.x, "_dm$"), !starts_with("sampleno"))
+
+enzymes_fa <- meta %>%
+  inner_join(enzymes, by = "sampleid") %>%
+  filter(matrix == "faeces") %>%
+  dplyr::select(-c(sampleid, matrix, sampling_time, animal, period, square, diet, description, ph, dry_matter),
+                -ends_with("fm")) %>%
+  arrange(sampleno) %>% 
+  dplyr::rename_with(~str_remove(.x, "_dm$"), !starts_with("sampleno"))
+
+# load metagenomics data as rel_abd
+
+breport_rel_abd_filtered <- readRDS("clean/3_breport_reads_long_rel_abd_filtered.RDS") %>% filter(sampleid != "103")
+
+kegg_rel_abd_filtered <- readRDS("clean/3_kegg_contigs_long_rel_abd_filtered.RDS") %>% filter(sampleid != "103")
+
+# load relative abundance files of metaproteomics
+
+proteins_norm_imp_rel_abd <- readRDS("clean/4_proteins_long_norm_imp_rel_abd.RDS") %>% filter(sampleid != "103")
+
+host_kegg_norm_imp_rel_abd <- readRDS("clean/4_host_kegg_long_norm_imp_rel_abd.RDS")%>% filter(sampleid != "103")
+
+kegg_norm_imp_rel_abd <- readRDS("clean/4_kegg_long_norm_imp_rel_abd.RDS")%>% filter(sampleid != "103")
+
+taxonomy_norm_imp_rel_abd <- readRDS("clean/4_taxonomy_long_norm_imp_rel_abd.RDS") %>% filter(sampleid != "103")
+
+# load metabolomics data
+
+nmr_il <- readRDS("clean/5_nmr_ileum_wide_dm.RDS") %>%
+  filter(sampleid != "103") %>%
+  dplyr::rename(sampleno = sampleid) %>%
+  mutate(sampleno = str_extract(sampleno, "[0-9]{2}$")) #prepare for correlation
+
+nmr_fa <- readRDS("clean/5_nmr_feces_wide_dm.RDS") %>%
+  dplyr::rename(sampleno = sampleid) %>%
+  mutate(sampleno = str_extract(sampleno, "[0-9]{2}$")) # prepare for correlation
+
+# filter and normalize metagenomic data
+
+g_species_rel_abd_filtered <- breport_rel_abd_filtered %>%
+  filter(rank == "S") %>%
+  dplyr::select(-rank)
+
+g_il_species_rel_abd <- g_species_rel_abd_filtered %>%
+  filter_ileum() %>%
+  prepare_omics_for_correlation(abundance_column = "rel_abd")
+
+g_fa_species_rel_abd <- g_species_rel_abd_filtered %>%
+  filter_faeces() %>%
+  prepare_omics_for_correlation(abundance_column = "rel_abd")
+
+g_il_kegg_rel_abd <- kegg_rel_abd_filtered %>%
+  filter_ileum() %>%
+  prepare_omics_for_correlation(abundance_column = "rel_abd") 
+
+g_fa_kegg_rel_abd <- kegg_rel_abd_filtered %>%
+  filter_faeces() %>%
+  prepare_omics_for_correlation(abundance_column = "rel_abd")
+
+# split datasets in host, micro and pea
+
+proteins_norm_imp_rel_abd_pea <- proteins_norm_imp_rel_abd %>%
+  filter(origin %in% c("pea")) %>%
+  separate(proteinid, into = c("p1", "p2", "p3"), sep = "\\|") %>%
+  dplyr::select(-p1, -p2, proteinid = p3) # to shorten the final name
+
+# split datasets for ileum and faeces
+
+p_il_pea <- proteins_norm_imp_rel_abd_pea %>%
+  filter_ileum() %>%
+  prepare_omics_for_correlation(abundance_column = "rel_abd")
+
+p_fa_pea <- proteins_norm_imp_rel_abd_pea %>%
+  filter_faeces() %>%
+  prepare_omics_for_correlation(abundance_column = "rel_abd")
+
+
+p_il_host_kegg <- host_kegg_norm_imp_rel_abd %>%
+  filter_ileum() %>%
+  prepare_omics_for_correlation(abundance_column = "rel_abd") 
+
+p_fa_host_kegg <- host_kegg_norm_imp_rel_abd %>%
+  filter_faeces() %>%
+  prepare_omics_for_correlation(abundance_column = "rel_abd") 
+
+
+p_il_kegg <- kegg_norm_imp_rel_abd %>%
+  filter_ileum() %>%
+  prepare_omics_for_correlation(abundance_column = "rel_abd") 
+
+p_fa_kegg <- kegg_norm_imp_rel_abd %>%
+  filter_faeces() %>%
+  prepare_omics_for_correlation(abundance_column = "rel_abd")
+
+
+p_genus_rel_abd <- taxonomy_norm_imp_rel_abd %>%
+  filter(rank == "G") %>% 
+  dplyr::select(-rank)
+
+p_il_genus <- p_genus_rel_abd %>%
+  filter_ileum() %>%
+  prepare_omics_for_correlation(abundance_column = "rel_abd") 
+
+p_fa_genus <- p_genus_rel_abd %>%
+  filter_faeces() %>%
+  prepare_omics_for_correlation(abundance_column = "rel_abd") 
+
+
+# create list of distance matrices
+
+ileal <- list(
+  "Prececal digestibility" = pcd %>% column_to_rownames("sampleno") %>% as.matrix() %>% vegdist(method = "euclidean", na.rm = T),
+  "Enzyme activity" = enzymes_il %>% column_to_rownames("sampleno") %>% as.matrix() %>% vegdist(method = "euclidean", na.rm = T),
+  "Metagenomic taxonomy" = g_il_species_rel_abd %>% column_to_rownames("sampleno") %>% as.matrix() %>% vegdist(method = "bray", na.rm = T),
+  "Metagenomic functions" = g_il_kegg_rel_abd %>% column_to_rownames("sampleno") %>% as.matrix() %>% vegdist(method = "bray", na.rm = T),
+  "Metaproteomic taxonomy" = p_il_genus %>% column_to_rownames("sampleno") %>% as.matrix() %>% vegdist(method = "bray", na.rm = T),
+  "Metaproteomic functions" = p_il_kegg %>% column_to_rownames("sampleno") %>% as.matrix() %>% vegdist(method = "bray", na.rm = T),
+  "Host proteins" = p_il_host_kegg %>% column_to_rownames("sampleno") %>% as.matrix() %>% vegdist(method = "bray", na.rm = T),
+  "Pea proteins" = p_il_pea %>% column_to_rownames("sampleno") %>% as.matrix() %>% vegdist(method = "bray", na.rm = T),
+  "Metabolomics" = nmr_il %>% column_to_rownames("sampleno") %>% as.matrix() %>% vegdist(method = "euclidean", na.rm = T)
+)
+
+faeces <- list(
+  "Hindgut disappearance" = hindgut %>% column_to_rownames("sampleno") %>% as.matrix() %>% vegdist(method = "euclidean", na.rm = T),
+  "Enzyme activity" = enzymes_fa %>% column_to_rownames("sampleno") %>% as.matrix() %>% vegdist(method = "euclidean", na.rm = T),
+  "Metagenomic taxonomy" = g_fa_species_rel_abd %>% column_to_rownames("sampleno") %>% as.matrix() %>% vegdist(method = "bray", na.rm = T),
+  "Metagenomic functions" = g_fa_kegg_rel_abd %>% column_to_rownames("sampleno") %>% as.matrix() %>% vegdist(method = "bray", na.rm = T),
+  "Metaproteomic taxonomy" = p_fa_genus %>% column_to_rownames("sampleno") %>% as.matrix() %>% vegdist(method = "bray", na.rm = T),
+  "Metaproteomic functions" = p_fa_kegg %>% column_to_rownames("sampleno") %>% as.matrix() %>% vegdist(method = "bray", na.rm = T),
+  "Host proteins" = p_fa_host_kegg %>% column_to_rownames("sampleno") %>% as.matrix() %>% vegdist(method = "bray", na.rm = T),
+  "Pea proteins" = p_fa_pea %>% column_to_rownames("sampleno") %>% as.matrix() %>% vegdist(method = "bray", na.rm = T),
+  "Metabolomics" = nmr_fa %>% column_to_rownames("sampleno") %>% as.matrix() %>% vegdist(method = "euclidean", na.rm = T)
+)
+
+# perform mantel for lists of distance matrices
+
+omics_list <- ileal
+
+matrix_r <- matrix(nrow = length(omics_list), ncol = length(omics_list), 
+                   dimnames = list(names(omics_list), names(omics_list)))
+matrix_p <- matrix(nrow = length(omics_list), ncol = length(omics_list), 
+                   dimnames = list(names(omics_list), names(omics_list)))
+for (i in 1:length(omics_list)) {
+  print(paste("i", i))
+  input_omics1 <- omics_list[[i]] # for each element in list
+  for (j in 1:length(omics_list)) { # for each column in df, except first
+    print(paste("j", j))
+    input_omics2 <- omics_list[[j]]
+    
+    if (class(input_omics1) == "dist" & class(input_omics2) == "dist") {
+      mantel <- mantel_between_two_dist(input_omics1, input_omics2)
+    } else {
+      mantel <- mantel_between_two_df(input_omics1, input_omics2, method2 = "bray")
+    }
+    
+    matrix_r[i,j] <- mantel[1]
+    matrix_p[i,j] <- mantel[2]
+  }
+}
+vector_p <- as.vector(matrix_p[upper.tri(matrix_p)]) # by column # only one half of the matrix
+vector_padj <- p.adjust(vector_p, method = "BH")
+matrix_padj <- matrix(nrow = nrow(matrix_p), ncol = ncol(matrix_p), byrow = FALSE,
+                      dimnames = list(rownames(matrix_p), colnames(matrix_p)))
+matrix_padj[upper.tri(matrix_padj)] <- vector_padj
+diag(matrix_padj) <- 1
+matrix_padj[lower.tri(matrix_padj)] <- t(matrix_padj)[lower.tri(matrix_padj)]
+
+annotation <- matrix_padj
+colnames(annotation) <- c(1:ncol(annotation))
+annotation_list <- annotation %>%
+  as_tibble(rownames = "y") %>%
+  mutate(y = nrow(annotation) - row_number() + 1) %>%
+  pivot_longer(-y, names_to = "x", values_to = "value") %>%
+  mutate(value = case_when(value < 0.001 ~ "***",
+                           value < 0.01 ~ "**",
+                           value < 0.05 ~ "*",
+                           value < 0.1 ~ ".",
+                           .default = " ")) %>%
+  filter(as.numeric(y) + as.numeric(x) <= max(as.numeric(y))) # remove upper tri
+
+
+jpeg(filename = paste0("plots/", "92_fig4a", ".jpeg"), 
+                       width =10, height = 8, unit="cm", res = 600)
+par(family = "arial", xpd = T)
+corrplot(matrix_r, method = "shade", tl.col = "black", tl.srt = 15, type = "lower", diag = F, mar = c(0,1,0,0),
+         col =  COL2(diverging = "PRGn"), col.lim = c(-1,1))
+text(x = annotation_list$x, y = annotation_list$y-0.2, label = annotation_list$value, cex = 1)
+dev.off()
+
+
+omics_list <- faeces
+
+matrix_r <- matrix(nrow = length(omics_list), ncol = length(omics_list), 
+                   dimnames = list(names(omics_list), names(omics_list)))
+matrix_p <- matrix(nrow = length(omics_list), ncol = length(omics_list), 
+                   dimnames = list(names(omics_list), names(omics_list)))
+for (i in 1:length(omics_list)) {
+  print(paste("i", i))
+  input_omics1 <- omics_list[[i]] # for each element in list
+  for (j in 1:length(omics_list)) { # for each column in df, except first
+    print(paste("j", j))
+    input_omics2 <- omics_list[[j]]
+    
+    if (class(input_omics1) == "dist" & class(input_omics2) == "dist") {
+      mantel <- mantel_between_two_dist(input_omics1, input_omics2)
+    } else {
+      mantel <- mantel_between_two_df(input_omics1, input_omics2, method2 = "bray")
+    }
+    
+    matrix_r[i,j] <- mantel[1]
+    matrix_p[i,j] <- mantel[2]
+  }
+}
+vector_p <- as.vector(matrix_p[upper.tri(matrix_p)]) # by column # only one half of the matrix
+vector_padj <- p.adjust(vector_p, method = "BH")
+matrix_padj <- matrix(nrow = nrow(matrix_p), ncol = ncol(matrix_p), byrow = FALSE,
+                      dimnames = list(rownames(matrix_p), colnames(matrix_p)))
+matrix_padj[upper.tri(matrix_padj)] <- vector_padj
+diag(matrix_padj) <- 1
+matrix_padj[lower.tri(matrix_padj)] <- t(matrix_padj)[lower.tri(matrix_padj)]
+
+annotation <- matrix_padj
+colnames(annotation) <- c(1:ncol(annotation))
+annotation_list <- annotation %>%
+  as_tibble(rownames = "y") %>%
+  mutate(y = nrow(annotation) - row_number() + 1) %>%
+  pivot_longer(-y, names_to = "x", values_to = "value") %>%
+  mutate(value = case_when(value < 0.001 ~ "***",
+                           value < 0.01 ~ "**",
+                           value < 0.05 ~ "*",
+                           value < 0.1 ~ ".",
+                           .default = " ")) %>%
+  filter(as.numeric(y) + as.numeric(x) <= max(as.numeric(y))) # remove upper tri
+
+
+jpeg(filename = paste0("plots/", "92_fig4b", ".jpeg"), 
+     width =10, height = 8, unit="cm", res = 600)
+par(family = "arial", xpd = T)
+corrplot(matrix_r, method = "shade", tl.col = "black", tl.srt = 15, type = "lower", diag = F, mar = c(0,1,0,0),
+         col =  COL2(diverging = "PRGn"), col.lim = c(-1,1))
+text(x = annotation_list$x, y = annotation_list$y-0.2, label = annotation_list$value, cex = 1)
+dev.off()
+
+empty <- ggplot() +
+  theme_void()
+
+fig4 <- (empty | empty) +
+  plot_annotation(tag_levels = list(c("a", "b"))) &
+  theme(plot.tag = element_text(size = 22, face = "bold"))
+
+ggsave(filename= "92_fig4_new.jpeg",
+       plot = fig4,
+       device= "jpeg", 
+       path = "plots", 
+       units = "cm", 
+       width = 20,
+       height = 8,
+       scale=2,
+       dpi=300)
+
+mantel_il <- mantel_for_one_list(omics_list = ileal)
+write_tsv(mantel_il, "tables/93_table_mantel_il.txt")
+
+mantel_fa <- mantel_for_one_list(omics_list = faeces)
+write_tsv(mantel_fa, "tables/93_table_mantel_fa.txt")
 
 ######
 ## Multiomics
@@ -1453,6 +1781,9 @@ create_loading_plots <- function(diablo_object, shapes1, shapes2) {
 
 # fig 9
 
+empty <- ggplot() +
+  theme_void()
+
 figS9a <- create_variate_plot(diablo_il_combined_1_2, shapes = c(15,16))
 figS9bc <- create_loading_plots(diablo_il_combined_1_2, shapes1 = c(15,16), shapes2 = c(15,16))
 
@@ -1472,8 +1803,9 @@ legend <- get_legend(legend)
 ggdraw(legend)
 
 figS9 <- (((figS9a | figS9bc) + plot_layout(widths = c(4,6))) / 
-            (legend)) +
-  plot_layout(heights = c(4,1)) +
+            (legend) /
+            empty) +
+  plot_layout(heights = c(4,1,.1)) +
   plot_annotation(tag_levels = list(c("a", "b", "c","", "d", "e", "f", ""))) &
   theme(plot.tag = element_text(size = 22, face = "bold"))
 
@@ -1669,8 +2001,9 @@ legend <- get_legend(legend)
 ggdraw(legend)
 
 figS14 <- (((figS14a | figS14bc) + plot_layout(widths = c(4,6))) / 
-             (legend)) +
-  plot_layout(heights = c(4,1)) +
+             (legend) /
+             empty) +
+  plot_layout(heights = c(4,1, .1)) +
   plot_annotation(tag_levels = list(c("a", "b", "c","", "d", "e", "f", ""))) &
   theme(plot.tag = element_text(size = 22, face = "bold"))
 
@@ -1687,6 +2020,107 @@ ggsave(filename= "92_figS14.jpeg",
 # networks
 library(qgraph)
 
+
+# S9d
+
+matrix_il_combined_1_2 <- plot_diablo(diablo_il_combined_1_2, cutoff_value = 0.875)
+
+g <- graph_from_adjacency_matrix(matrix_il_combined_1_2, mode = "undirected", weighted = T, diag = F)
+cluster <- list("1" = c("il_met", "il_tyr", "il_phe", "il_thr", "il_ile", "il_ala",
+                        "il_val", "il_ser", "il_leu", "il_his", "il_asp", "il_lys",
+                        "il_arg", "pcd_thr", "pcd_ser", "pcd_lys", "pcd_tyr", "pcd_ala",
+                        "pcd_leu", "pcd_his", "pcd_val", "pcd_asp", "pcd_phe", "pcd_ile",
+                        "pcd_arg", "pcd_cp", "pcd_gly",
+                        "p_K05910", "p_K00700",
+                        "g_K05823", 
+                        "g_Prevotella pectinovora", "g_Prevotella sp000436035",
+                        "g_Prevotella copri", "g_Prevotella sp900551275",
+                        "g_Prevotella sp900554835", "g_Prevotella sp021636625",
+                        "g_Prevotella copri_A", "g_Prevotella sp002299635",
+                        "g_Prevotella sp004558865",
+                        "ssc_100155945", "ssc_780428", "ssc_733607", "ssc_100514249",
+                        "ssc_100462755", "ssc_100516959", "ssc_100157834",
+                        "A0A9D4VFD8_PEA", "A0A9D4XAV0_PEA", "A0A9D4WNU2_PEA",
+                        "A0A9D5APF7_PEA", "A0A9D4Y5R6_PEA", "A0A9D5AZK3_PEA",
+                        "A0A9D4WX68_PEA", "A0A9D5BGL9_PEA", "A0A9D5AA18_PEA",
+                        "A0A9D4YJ49_PEA", "A0A9D4VIN0_PEA", "A0A9D4W7S9_PEA",
+                        "m_tyrosine", "m_valine", "m_phenylalanine"),
+                "2" = c("il_tdf",
+                        "p_K01200", "p_K01582", "p_K01585", "p_K01581",
+                        "g_K02444", "g_K11782", "g_K02355", "g_K09949", 
+                        "g_Streptococcus oriscaviae", "g_Mitsuokella multacida",
+                        "ssc_808504", "ssc_733685", "ssc_397113",
+                        "A0A9D5BQA3_PEA",
+                        "m_propionate", "m_trimethylamine"),
+                "3" = c("il_ip_4_1256", 
+                        "p_K11929", "p_K09475", "p_K09476", "p_K14062", "p_K16076", "p_K01533",
+                        "g_K01496", "g_K13935",
+                        "g_Nanosynbacter sp029975625", "g_Escherichia sp004211955",
+                        "g_Flavobacterium psychrophilum_B", "g_Escherichia sp005843885",
+                        "g_JALHET01 sp022839525", "g_Advenella sp023423975",
+                        "A0A9D4WQ37_PEA"), 
+                "4" = c("m_galactose",
+                        "p_K15582", "p_K02913", "p_K03706", "p_K02034", "p_K03768",
+                        "ssc_100158117"),
+                "5" = c("pcd_ca",
+                        "p_K00020", "p_K00042", "p_K03336", 
+                        "g_K00012", "g_K06871",
+                        "ssc_654405", "ssc_100152549",
+                        "A0A9D4WM15_PEA"))
+layout_fr <- layout_with_fr(g, weights = 1-(abs(E(g)$weight)))
+layout_fr <- qgraph.layout.fruchtermanreingold(get.edgelist(g, names = F), #weights = 1-(abs(E(g)$weight)), 
+                                               vcount = vcount(g), area = vcount(g)^3, repulse.rad=vcount(g)^3.65)
+layout_fr <- norm_coords(layout_fr)
+# assign colors to weight values
+color_index <- round((E(g)$weight + 1) / 2 * 99) + 1
+E(g)$color <- color.jet(100)[color_index]
+E(g)$width <- .75
+node_color <- c("#a6cee3", "#b2df8a", "#fb9a99", "#fdbf6f", "#cab2d6", "#ffff99")
+color_vector <- case_when(str_detect(V(g)$name, "^il|^fa|^pc|^hg|^enz") ~ 1,
+                          str_detect(V(g)$name, "^g_") ~ 2,
+                          str_detect(V(g)$name, "^p_") ~ 3,
+                          str_detect(V(g)$name, "^ssc_") ~ 4,
+                          str_detect(V(g)$name, "_PEA$") ~ 5,
+                          str_detect(V(g)$name, "^m_") ~ 6,
+                          .default = 0)
+V(g)$color <- node_color[color_vector]
+V(g)$label.family <- "arial"
+V(g)$label.font <- 1
+V(g)$label.color <- "black"
+V(g)$label.cex <- .75
+jpeg(filename = paste0("plots/", get_script_number(), "_figS9d", save_name, ".jpeg"),
+     width = 20, height = 15, unit="cm", res = 500, pointsize = 12, family = "arial")
+par(mar = c(0,0,0,0))
+plot(g, layout = layout_fr, margin = c(0,0,0,0), rescale = F,
+     vertex.shape = "rectangle", 
+     vertex.size = str_width(V(g)$name)*1.8,
+     vertex.size2 = 3,
+     vertex.frame.width = .1, 
+     mark.groups = cluster,
+     mark.shape = .5,
+     mark.expand = 0.5, 
+     mark.col = NA,
+     mark.border = "grey10",
+     mark.lwd = 2)
+legend("topright",
+       legend = c(NA,1,NA,NA,NA,NA, 0, NA,NA,NA,NA,-1),
+       fill = c("white", rev(color.jet(11))),
+       border = NA,
+       y.intersp = .5,
+       cex = 1, text.font = 1,
+       title = "Correlation", title.adj = 0.2, title.cex = 1.25)
+legend("bottomright",
+       legend = c("Nutrition", "Metagenomics", "Metaproteomics", "Host proteins", "Pea proteins", "Metabolomics"),
+       fill = node_color,
+       y.intersp = .8,
+       cex = 1,
+       title = "Block", title.adj = 0.2, title.cex = 1.25)
+text(.9, .95, labels = "I", family = "arial", cex = 2)
+text(.9, -.95, labels = "II", family = "arial", cex = 2)
+text(-.7, -.95, labels = "III", family = "arial", cex = 2)
+text(-1, -.5, labels = "IV", family = "arial", cex = 2)
+text(-1, .5, labels = "V", family = "arial", cex = 2)
+dev.off() 
 
 # S10d
 
@@ -2022,6 +2456,85 @@ text(.7, .95, labels = "I", family = "arial", cex = 2)
 text(-.9, -.9, labels = "II", family = "arial", cex = 2)
 dev.off() 
 
+# S14d
+
+matrix_fa_combined_1_4 <- plot_diablo(diablo_fa_combined_1_4, cutoff_value = 0.8)
+
+g <- graph_from_adjacency_matrix(matrix_fa_combined_1_4, mode = "undirected", weighted = T, diag = F)
+cluster = list("1" = c("fa_k", "hg_dm", "hg_tdf", "fa_ti", 
+                       "p_K06410", "p_K04079", "p_K02652", "p_K02662", "p_K02243",
+                       "g_K01267",
+                       "g_UMGS124 sp019420325", "g_UMGS124 sp902464015", 
+                       "g_HGM13006 sp029012465", "g_UMGS124 sp900555105",
+                       "ssc_100525899", "ssc_407610", "ssc_100037943", "ssc_445461",
+                       "ssc_397397",
+                       "A0A9D5BQA3_PEA", "A0A9D5BN09_PEA", "A0A9D4XTC5_PEA", 
+                       "A0A9D4VJF2_PEA", "A0A9D4WCI6_PEA",
+                       "m_acetate", "m_butyrate", "m_propionate", "m_methionine",
+                       "m_galactose"),
+               "2" = c("enz_carb", "enz_try", "enz_chy", 
+                       "p_K21471", "p_K01447", "p_K13694", "p_K19224", "p_K01278",
+                       "p_K04488",
+                       "g_Roseburia sp902781225", "g_CALXSC01 sp934747265",
+                       "g_Ruminiclostridium_E sp945921515", "g_UBA10677 sp934270565",
+                       "g_CAG-273 sp003507395",
+                       "ssc_397520", "ssc_100158015", "ssc_100737088", "ssc_397080",
+                       "ssc_397012",
+                       "A0A9D4WJM1_PEA", "A0A9D4X6Z1_PEA", "A0A9D4WX68_PEA",
+                       "A0A9D4Y3P4_PEA", "A0A9D5BFI9_PEA",
+                       "m_isovalerate", "m_phenylacetate", "m_isobutyrate"))
+layout_fr <- layout_with_fr(g, weights = 1-(abs(E(g)$weight)))
+layout_fr <- qgraph.layout.fruchtermanreingold(get.edgelist(g, names = F), #weights = 1-(abs(E(g)$weight)), 
+                                               vcount = vcount(g), area = vcount(g)^3, repulse.rad=vcount(g)^3.54)
+layout_fr <- norm_coords(layout_fr)
+# assign colors to weight values
+color_index <- round((E(g)$weight + 1) / 2 * 99) + 1
+E(g)$color <- color.jet(100)[color_index]
+E(g)$width <- .75
+node_color <- c("#a6cee3", "#b2df8a", "#fb9a99", "#fdbf6f", "#cab2d6", "#ffff99")
+color_vector <- case_when(str_detect(V(g)$name, "^il|^fa|^pc|^hg|^enz") ~ 1,
+                          str_detect(V(g)$name, "^g_") ~ 2,
+                          str_detect(V(g)$name, "^p_") ~ 3,
+                          str_detect(V(g)$name, "^ssc_") ~ 4,
+                          str_detect(V(g)$name, "_PEA$") ~ 5,
+                          str_detect(V(g)$name, "^m_") ~ 6,
+                          .default = 0)
+V(g)$color <- node_color[color_vector]
+V(g)$label.family <- "arial"
+V(g)$label.font <- 1
+V(g)$label.color <- "black"
+V(g)$label.cex <- .8
+jpeg(filename = paste0("plots/", get_script_number(), "_figS14d", save_name, ".jpeg"),
+     width = 20, height = 15, unit="cm", res = 500, pointsize = 12, family = "arial")
+par(mar = c(0,0,0,0))
+plot(g, layout = layout_fr, margin = c(0,0,0,0), rescale = F,
+     vertex.shape = "rectangle", 
+     vertex.size = str_width(V(g)$name)*2.0,
+     vertex.size2 = 3.5,
+     vertex.frame.width = .1,
+     mark.groups = cluster,
+     mark.shape = 0.5,
+     mark.expand = 0.5,
+     mark.col = NA,
+     mark.border = "grey10",
+     mark.lwd = 2)
+legend("topright",
+       legend = c(NA,1,NA,NA,NA,NA, 0, NA,NA,NA,NA,-1),
+       fill = c("white", rev(color.jet(11))),
+       border = NA,
+       y.intersp = .5,
+       cex = 1, text.font = 1,
+       title = "Correlation", title.adj = 0.2, title.cex = 1.25)
+legend("bottomright",
+       legend = c("Nutrition", "Metagenomics", "Metaproteomics", "Host proteins", "Pea proteins", "Metabolomics"),
+       fill = node_color,
+       y.intersp = .8,
+       cex = 1,
+       title = "Block", title.adj = 0.2, title.cex = 1.25)
+text(.6, .95, labels = "I", family = "arial", cex = 2)
+text(-.9, -.95, labels = "II", family = "arial", cex = 2)
+dev.off() 
+
 
 # redefine functions for kegg-taxa origin 
 
@@ -2166,104 +2679,7 @@ p_plot_kegg_for_taxa <- function(input_df, taxa_name, threshold = 1, use_names =
 # dev.off() 
 # fig4a <- as.ggplot(pheatmap(matrix_il_combined_1_2_sub1sub))
 
-matrix_il_combined_1_2 <- plot_diablo(diablo_il_combined_1_2, cutoff_value = 0.875)
-
-g <- graph_from_adjacency_matrix(matrix_il_combined_1_2, mode = "undirected", weighted = T, diag = F)
-cluster <- list("1" = c("il_met", "il_tyr", "il_phe", "il_thr", "il_ile", "il_ala",
-                        "il_val", "il_ser", "il_leu", "il_his", "il_asp", "il_lys",
-                        "il_arg", "pcd_thr", "pcd_ser", "pcd_lys", "pcd_tyr", "pcd_ala",
-                        "pcd_leu", "pcd_his", "pcd_val", "pcd_asp", "pcd_phe", "pcd_ile",
-                        "pcd_arg", "pcd_cp", "pcd_gly",
-                        "p_K05910", "p_K00700",
-                        "g_K05823", 
-                        "g_Prevotella pectinovora", "g_Prevotella sp000436035",
-                        "g_Prevotella copri", "g_Prevotella sp900551275",
-                        "g_Prevotella sp900554835", "g_Prevotella sp021636625",
-                        "g_Prevotella copri_A", "g_Prevotella sp002299635",
-                        "g_Prevotella sp004558865",
-                        "ssc_100155945", "ssc_780428", "ssc_733607", "ssc_100514249",
-                        "ssc_100462755", "ssc_100516959", "ssc_100157834",
-                        "A0A9D4VFD8_PEA", "A0A9D4XAV0_PEA", "A0A9D4WNU2_PEA",
-                        "A0A9D5APF7_PEA", "A0A9D4Y5R6_PEA", "A0A9D5AZK3_PEA",
-                        "A0A9D4WX68_PEA", "A0A9D5BGL9_PEA", "A0A9D5AA18_PEA",
-                        "A0A9D4YJ49_PEA", "A0A9D4VIN0_PEA", "A0A9D4W7S9_PEA",
-                        "m_tyrosine", "m_valine", "m_phenylalanine"),
-                "2" = c("il_tdf",
-                        "p_K01200", "p_K01582", "p_K01585", "p_K01581",
-                        "g_K02444", "g_K11782", "g_K02355", "g_K09949", 
-                        "g_Streptococcus oriscaviae", "g_Mitsuokella multacida",
-                        "ssc_808504", "ssc_733685", "ssc_397113",
-                        "A0A9D5BQA3_PEA",
-                        "m_propionate", "m_trimethylamine"),
-                "3" = c("il_ip_4_1256", 
-                        "p_K11929", "p_K09475", "p_K09476", "p_K14062", "p_K16076", "p_K01533",
-                        "g_K01496", "g_K13935",
-                        "g_Nanosynbacter sp029975625", "g_Escherichia sp004211955",
-                        "g_Flavobacterium psychrophilum_B", "g_Escherichia sp005843885",
-                        "g_JALHET01 sp022839525", "g_Advenella sp023423975",
-                        "A0A9D4WQ37_PEA"), 
-                "4" = c("m_galactose",
-                        "p_K15582", "p_K02913", "p_K03706", "p_K02034", "p_K03768",
-                        "ssc_100158117"),
-                "5" = c("pcd_ca",
-                        "p_K00020", "p_K00042", "p_K03336", 
-                        "g_K00012", "g_K06871",
-                        "ssc_654405", "ssc_100152549",
-                        "A0A9D4WM15_PEA"))
-layout_fr <- layout_with_fr(g, weights = 1-(abs(E(g)$weight)))
-layout_fr <- qgraph.layout.fruchtermanreingold(get.edgelist(g, names = F), #weights = 1-(abs(E(g)$weight)), 
-                                               vcount = vcount(g), area = vcount(g)^3, repulse.rad=vcount(g)^3.65)
-layout_fr <- norm_coords(layout_fr)
-# assign colors to weight values
-color_index <- round((E(g)$weight + 1) / 2 * 99) + 1
-E(g)$color <- color.jet(100)[color_index]
-E(g)$width <- .75
-node_color <- c("#a6cee3", "#b2df8a", "#fb9a99", "#fdbf6f", "#cab2d6", "#ffff99")
-color_vector <- case_when(str_detect(V(g)$name, "^il|^fa|^pc|^hg|^enz") ~ 1,
-                          str_detect(V(g)$name, "^g_") ~ 2,
-                          str_detect(V(g)$name, "^p_") ~ 3,
-                          str_detect(V(g)$name, "^ssc_") ~ 4,
-                          str_detect(V(g)$name, "_PEA$") ~ 5,
-                          str_detect(V(g)$name, "^m_") ~ 6,
-                          .default = 0)
-V(g)$color <- node_color[color_vector]
-V(g)$label.family <- "arial"
-V(g)$label.font <- 1
-V(g)$label.color <- "black"
-V(g)$label.cex <- .75
-jpeg(filename = paste0("plots/", get_script_number(), "_fig4a", save_name, ".jpeg"),
-     width = 20, height = 15, unit="cm", res = 500, pointsize = 12, family = "arial")
-par(mar = c(0,0,0,0))
-plot(g, layout = layout_fr, margin = c(0,0,0,0), rescale = F,
-     vertex.shape = "rectangle", 
-     vertex.size = str_width(V(g)$name)*1.8,
-     vertex.size2 = 3,
-     vertex.frame.width = .1, 
-     mark.groups = cluster,
-     mark.shape = .5,
-     mark.expand = 0.5, 
-     mark.col = NA,
-     mark.border = "grey10",
-     mark.lwd = 2)
-legend("topright",
-       legend = c(NA,1,NA,NA,NA,NA, 0, NA,NA,NA,NA,-1),
-       fill = c("white", rev(color.jet(11))),
-       border = NA,
-       y.intersp = .5,
-       cex = 1, text.font = 1,
-       title = "Correlation", title.adj = 0.2, title.cex = 1.25)
-legend("bottomright",
-       legend = c("Nutrition", "Metagenomics", "Metaproteomics", "Host proteins", "Pea proteins", "Metabolomics"),
-       fill = node_color,
-       y.intersp = .8,
-       cex = 1,
-       title = "Block", title.adj = 0.2, title.cex = 1.25)
-text(.9, .95, labels = "I", family = "arial", cex = 2)
-text(.9, -.95, labels = "II", family = "arial", cex = 2)
-text(-.7, -.95, labels = "III", family = "arial", cex = 2)
-text(-1, -.5, labels = "IV", family = "arial", cex = 2)
-text(-1, .5, labels = "V", family = "arial", cex = 2)
-dev.off() 
+# Fig 5
 
 pdf(NULL)
 matrix_il_combined_1_2 <- circosPlot(diablo_il_combined_1_2, cutoff = 0, size.variables = 1, line = T, size.labels = 1.5)
@@ -2290,104 +2706,25 @@ il_combined_1_2_sub1 <- filter_submatrix(matrix_il_combined_1_2,
                                                     "A0A9D4YJ49_PEA", "A0A9D4VIN0_PEA", "A0A9D4W7S9_PEA",
                                                     "m_tyrosine", "m_valine", "m_phenylalanine"))
 
-fig4b <- as.ggplot(pheatmap(il_combined_1_2_sub1, fontsize_row = 8, fontsize_col = 14))
+fig5a <- as.ggplot(pheatmap(il_combined_1_2_sub1, fontsize_row = 8, fontsize_col = 14))
 
 empty <- ggplot() +
   theme_void()
 
-fig4 <- (empty / fig4b) +
-  plot_layout(heights = c(4,4)) +
-  plot_annotation(tag_levels = list(c("a", "b"))) &
-  theme(plot.tag = element_text(size = 22, face = "bold"))
-
-ggsave(filename= "92_fig4.jpeg",
-       plot = fig4,
-       device= "jpeg", 
-       path = "plots", 
-       units = "cm", 
-       width = 20,
-       height = 25,
-       scale=2,
-       dpi=300)
-
-# Fig 5
-
-matrix_fa_combined_1_4 <- plot_diablo(diablo_fa_combined_1_4, cutoff_value = 0.8)
-
-g <- graph_from_adjacency_matrix(matrix_fa_combined_1_4, mode = "undirected", weighted = T, diag = F)
-cluster = list("1" = c("fa_k", "hg_dm", "hg_tdf", "fa_ti", 
-                        "p_K06410", "p_K04079", "p_K02652", "p_K02662", "p_K02243",
-                        "g_K01267",
-                        "g_UMGS124 sp019420325", "g_UMGS124 sp902464015", 
-                        "g_HGM13006 sp029012465", "g_UMGS124 sp900555105",
-                        "ssc_100525899", "ssc_407610", "ssc_100037943", "ssc_445461",
-                        "ssc_397397",
-                        "A0A9D5BQA3_PEA", "A0A9D5BN09_PEA", "A0A9D4XTC5_PEA", 
-                        "A0A9D4VJF2_PEA", "A0A9D4WCI6_PEA",
-                        "m_acetate", "m_butyrate", "m_propionate", "m_methionine",
-                        "m_galactose"),
-                "2" = c("enz_carb", "enz_try", "enz_chy", 
-                        "p_K21471", "p_K01447", "p_K13694", "p_K19224", "p_K01278",
-                        "p_K04488",
-                        "g_Roseburia sp902781225", "g_CALXSC01 sp934747265",
-                        "g_Ruminiclostridium_E sp945921515", "g_UBA10677 sp934270565",
-                        "g_CAG-273 sp003507395",
-                        "ssc_397520", "ssc_100158015", "ssc_100737088", "ssc_397080",
-                        "ssc_397012",
-                        "A0A9D4WJM1_PEA", "A0A9D4X6Z1_PEA", "A0A9D4WX68_PEA",
-                        "A0A9D4Y3P4_PEA", "A0A9D5BFI9_PEA",
-                        "m_isovalerate", "m_phenylacetate", "m_isobutyrate"))
-layout_fr <- layout_with_fr(g, weights = 1-(abs(E(g)$weight)))
-layout_fr <- qgraph.layout.fruchtermanreingold(get.edgelist(g, names = F), #weights = 1-(abs(E(g)$weight)), 
-                                               vcount = vcount(g), area = vcount(g)^3, repulse.rad=vcount(g)^3.54)
-layout_fr <- norm_coords(layout_fr)
-# assign colors to weight values
-color_index <- round((E(g)$weight + 1) / 2 * 99) + 1
-E(g)$color <- color.jet(100)[color_index]
-E(g)$width <- .75
-node_color <- c("#a6cee3", "#b2df8a", "#fb9a99", "#fdbf6f", "#cab2d6", "#ffff99")
-color_vector <- case_when(str_detect(V(g)$name, "^il|^fa|^pc|^hg|^enz") ~ 1,
-                          str_detect(V(g)$name, "^g_") ~ 2,
-                          str_detect(V(g)$name, "^p_") ~ 3,
-                          str_detect(V(g)$name, "^ssc_") ~ 4,
-                          str_detect(V(g)$name, "_PEA$") ~ 5,
-                          str_detect(V(g)$name, "^m_") ~ 6,
-                          .default = 0)
-V(g)$color <- node_color[color_vector]
-V(g)$label.family <- "arial"
-V(g)$label.font <- 1
-V(g)$label.color <- "black"
-V(g)$label.cex <- .8
-jpeg(filename = paste0("plots/", get_script_number(), "_fig5a", save_name, ".jpeg"),
-     width = 20, height = 15, unit="cm", res = 500, pointsize = 12, family = "arial")
-par(mar = c(0,0,0,0))
-plot(g, layout = layout_fr, margin = c(0,0,0,0), rescale = F,
-     vertex.shape = "rectangle", 
-     vertex.size = str_width(V(g)$name)*2.0,
-     vertex.size2 = 3.5,
-     vertex.frame.width = .1,
-     mark.groups = cluster,
-     mark.shape = 0.5,
-     mark.expand = 0.5,
-     mark.col = NA,
-     mark.border = "grey10",
-     mark.lwd = 2)
-legend("topright",
-       legend = c(NA,1,NA,NA,NA,NA, 0, NA,NA,NA,NA,-1),
-       fill = c("white", rev(color.jet(11))),
-       border = NA,
-       y.intersp = .5,
-       cex = 1, text.font = 1,
-       title = "Correlation", title.adj = 0.2, title.cex = 1.25)
-legend("bottomright",
-       legend = c("Nutrition", "Metagenomics", "Metaproteomics", "Host proteins", "Pea proteins", "Metabolomics"),
-       fill = node_color,
-       y.intersp = .8,
-       cex = 1,
-       title = "Block", title.adj = 0.2, title.cex = 1.25)
-text(.6, .95, labels = "I", family = "arial", cex = 2)
-text(-.9, -.95, labels = "II", family = "arial", cex = 2)
-dev.off() 
+# fig4 <- (empty / fig4b) +
+#   plot_layout(heights = c(4,4)) +
+#   plot_annotation(tag_levels = list(c("a", "b"))) &
+#   theme(plot.tag = element_text(size = 22, face = "bold"))
+# 
+# ggsave(filename= "92_fig4.jpeg",
+#        plot = fig4,
+#        device= "jpeg", 
+#        path = "plots", 
+#        units = "cm", 
+#        width = 20,
+#        height = 25,
+#        scale=2,
+#        dpi=300)
 
 pdf(NULL)
 matrix_fa_combined_1_4 <- circosPlot(diablo_fa_combined_1_4, cutoff = 0, size.variables = 1, line = T, size.labels = 1.5)
@@ -2418,12 +2755,12 @@ empty <- ggplot() +
 fig5bc <- (fig5b | fig5c) +
   plot_layout(widths = c(24,2))
 
-fig5 <- (empty / fig5bc) +
+fig5 <- (fig5a / fig5bc) +
   plot_layout(heights = c(4,4)) +
   plot_annotation(tag_levels = list(c("a", "b", "c"))) &
   theme(plot.tag = element_text(size = 22, face = "bold"))
 
-ggsave(filename= "92_fig5.jpeg",
+ggsave(filename= "92_fig5_new.jpeg",
        plot = fig5,
        device= "jpeg", 
        path = "plots", 
@@ -2641,11 +2978,11 @@ c <- p_plot_kegg_taxa_origin(input_df = proteins_func_tax_combined_il, kegg_ko_f
   labs(fill = "Genus")
 
 
-figS17 <- (a | b) /
-  (c | d) +
-  plot_layout(heights = c(5,4)) +
-  plot_annotation(tag_levels = "a") &
-  theme(plot.tag = element_text(size = 22, face = "bold"))
+# figS17 <- (a | b) /
+#   (c | d) +
+#   plot_layout(heights = c(5,4)) +
+#   plot_annotation(tag_levels = "a") &
+#   theme(plot.tag = element_text(size = 22, face = "bold"))
 
 ggsave(filename= "92_figS17.jpeg",
        plot = a,

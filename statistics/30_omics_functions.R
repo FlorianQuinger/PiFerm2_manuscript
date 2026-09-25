@@ -7,6 +7,7 @@ library(MicrobiomeProfiler)
 library(clusterProfiler)
 library(org.Ss.eg.db)
 library(ggrepel)
+library(KEGGREST)
 
 source(here("0_general_functions.R"))
 
@@ -2026,6 +2027,56 @@ save_top_features_k_table <- function(df, selected_matrix, top_features = 10, sa
     saveRDS(output_df, file = paste0("clean/", get_script_number(), top_abbr, matrix_abbr, "_", save_name, ".RDS"))
   }
   return(output_df)
+}
+
+
+# add information to kegg_kos 
+# takes a vector of kegg_kos
+
+annotate_keggs <- function(kegg_kos) {
+  pb <- txtProgressBar(min = 1, max = length(kegg_kos), style = 3) # initialize progessbar
+  out_list <- list()
+  for (i in 1:length(kegg_kos)) {
+    ko <- kegg_kos[i]
+    ko <- case_when(str_detect(ko, "K") ~ ko,
+                    str_detect(ko, "ssc") ~ ko,
+                    .default = str_c("ssc:", ko)) # add ssc if not present and if not a K number
+    setTxtProgressBar(pb, i) # print progressbar
+    
+    out <- tryCatch(
+      {
+        kegg_info <- keggGet(ko)[[1]]
+        tibble(kegg_ko = ko,
+               name = kegg_info$NAME,
+               symbol = str_c(kegg_info$SYMBOL, collapse = ","),
+               pathways = str_c(kegg_info$PATHWAY, collapse = ","),
+               pathway_ids = str_c(names(kegg_info$PATHWAY), collapse = ","),
+               modules = str_c(kegg_info$MODULE, collapse = ","),
+               module_ids = str_c(names(kegg_info$MODULE),collapse= ","),
+               reactions = str_c(kegg_info$REACTION, collapse = ","),
+               reaction_ids = str_c(names(kegg_info$REACTION), collapse = ","),
+               brite = str_c(kegg_info$BRITE, collapse = ","))
+      },
+      error = function(e) {
+        tibble(kegg_ko = ko,
+               symbol = NA,
+               name = NA,
+               pathways = NA,
+               pathway_ids = NA,
+               modules = NA,
+               module_ids = NA,
+               reactions = NA,
+               reaction_ids = NA,
+               brite = NA)
+      }
+    )
+    
+    out_list[[i]] <- out
+  }
+  out <- do.call("rbind", out_list)
+  close(pb) # close progessbar
+  
+  return(out)
 }
 
 
